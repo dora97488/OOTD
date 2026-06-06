@@ -8,10 +8,10 @@ import Dexie, { type Table } from 'dexie';
 
 export type WuXing = '木' | '火' | '土' | '金' | '水';
 export type Category = '上衣' | '下身' | '外套' | '洋裝' | '鞋' | '配件';
-export type Season = '春' | '夏' | '秋' | '冬' | '四季';
+export type Season = '春' | '夏' | '秋' | '冬' | '四季' | '春夏' | '春秋' | '秋冬';
 
 export const CATEGORIES: Category[] = ['上衣', '下身', '外套', '洋裝', '鞋', '配件'];
-export const SEASONS: Season[] = ['春', '夏', '秋', '冬', '四季'];
+export const SEASONS: Season[] = ['四季', '春夏', '春秋', '秋冬'];
 
 export interface Item {
   id: string;
