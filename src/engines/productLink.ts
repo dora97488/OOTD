@@ -18,9 +18,12 @@ export interface ProductMeta {
 }
 
 // 依序嘗試的 CORS proxy（前者失敗自動換下一個）。{url} 會被替換成 encode 後的目標網址。
+// 公開代理時常逾時 / 被目標站擋（522/403），多放幾個提高命中率；仍可能全掛（大型品牌站常見）。
 const PROXIES = [
   'https://api.allorigins.win/raw?url={url}',
+  'https://api.codetabs.com/v1/proxy/?quest={url}',
   'https://corsproxy.io/?url={url}',
+  'https://thingproxy.freeboard.io/fetch/{rawurl}',
 ];
 
 export function isValidUrl(raw: string): boolean {
@@ -36,7 +39,9 @@ async function fetchViaProxy(target: string): Promise<Response> {
   let lastErr: unknown;
   for (const tpl of PROXIES) {
     try {
-      const proxied = tpl.replace('{url}', encodeURIComponent(target));
+      const proxied = tpl
+        .replace('{url}', encodeURIComponent(target))
+        .replace('{rawurl}', target);
       const res = await fetch(proxied);
       if (res.ok) return res;
       lastErr = new Error(`proxy ${res.status}`);
@@ -58,20 +63,24 @@ export async function parseProductLink(rawUrl: string): Promise<ProductMeta> {
 
   const res = await fetchViaProxy(url);
   const html = await res.text();
+  // proxy 可能回極短的錯誤字串（如 522 body），視為抓取失敗 → 讓呼叫端走手動填寫。
+  if (html.trim().length < 200) throw new Error('連結內容抓取失敗（可能被網站擋下）');
   const doc = new DOMParser().parseFromString(html, 'text/html');
 
   const meta: ProductMeta = {};
   applyJsonLd(doc, meta);   // 先吃結構化資料（最準）
   applyMetaTags(doc, meta); // 再用 OG / meta 補空缺
+  if (!meta.imageUrl) meta.imageUrl = findBodyProductImage(doc); // 無 og:image → 撈 body 內的商品圖（如 CK 的 Demandware 圖）
 
   // 圖片網址轉成絕對路徑（OG 多為絕對，但保險起見）
   if (meta.imageUrl) {
     try { meta.imageUrl = new URL(meta.imageUrl, url).href; } catch { /* 保留原值 */ }
   }
   // 品名 fallback 用 <title>：但 <title> 常是頁面外框（如「商品明細 - UNIQLO台灣」），不是商品名。
-  // 只有在頁面其實有結構化商品訊號（圖片/價格/品牌）時才採用；否則留空讓使用者自己填。
+  // 只有在頁面其實有結構化商品訊號（圖片/價格/品牌）時才採用，並去掉「｜品牌｜站名」這類尾綴；否則留空。
   if (!meta.name && (meta.imageUrl || meta.brand || meta.price !== undefined)) {
-    meta.name = doc.querySelector('title')?.textContent?.trim() || undefined;
+    const title = doc.querySelector('title')?.textContent?.trim();
+    meta.name = title ? title.split(/[|｜]/)[0].trim() || title : undefined;
   }
   // 品牌 fallback 用站名
   if (!meta.brand && meta.siteName) meta.brand = meta.siteName;
@@ -181,6 +190,31 @@ function applyMetaTags(doc: Document, meta: ProductMeta) {
     const num = toPrice(p);
     if (num !== undefined) meta.price = num;
   }
+}
+
+// 無 og:image 時，從 body 撈商品圖：先看 <link rel=image_src> / itemprop=image，
+// 再掃 <img> 的 src/data-src/srcset，挑「網址含商品圖 CDN 特徵」的第一張（避開 logo/icon）。
+const PRODUCT_IMG_HINT = /(\/dw\/image\/|demandware|scene7|cdn\.shopify|\/medias?\/|\/products?\/|_main_|product[-_]?image|zoom|_large|_2000x|_hi_res)/i;
+const NON_PRODUCT_IMG = /(logo|icon|sprite|placeholder|pixel|blank|avatar|flag|payment|badge|loading)/i;
+
+function findBodyProductImage(doc: Document): string | undefined {
+  const linkSrc = doc.querySelector('link[rel="image_src"]')?.getAttribute('href')?.trim();
+  if (linkSrc) return linkSrc;
+  const itemprop = doc.querySelector('meta[itemprop="image"], [itemprop="image"]')?.getAttribute('content')?.trim();
+  if (itemprop) return itemprop;
+
+  const imgs = Array.from(doc.querySelectorAll('img'));
+  for (const img of imgs) {
+    const raw =
+      img.getAttribute('src') ||
+      img.getAttribute('data-src') ||
+      img.getAttribute('data-original') ||
+      img.getAttribute('srcset')?.split(',')[0]?.trim().split(' ')[0];
+    if (!raw) continue;
+    if (NON_PRODUCT_IMG.test(raw)) continue;
+    if (PRODUCT_IMG_HINT.test(raw)) return raw;
+  }
+  return undefined;
 }
 
 // ---- 小工具 ----
