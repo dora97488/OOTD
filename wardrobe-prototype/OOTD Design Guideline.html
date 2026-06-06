@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<!-- saved from url=(0049)http://127.0.0.1:8123/design-guideline/index.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editorial Vibe Design Guideline</title>
+    <style>
+      @font-face {
+        font-family: "CormorantGaramondItalic";
+        src: url("./assets/CormorantGaramond-Italic-VariableFont_wght.ttf")
+          format("truetype");
+        font-style: italic;
+        font-weight: 300 700;
+      }
+
+      :root {
+        --paper: #f7f6f2;
+        --canvas: #f1f0ec;
+        --muted-bg: #e8e6e1;
+        --surface: #ffffff;
+        --surface-soft: #fbfaf7;
+        --text: #1e1e1c;
+        --text-secondary: #6f6b64;
+        --text-muted: #b7b4ad;
+        --text-inverse: #ffffff;
+        --terracotta: #a94d28;
+        --terracotta-dark: #8f3e20;
+        --tomato: #d84a2b;
+        --leaf: #8fa66b;
+        --cream: #efe7c9;
+        --navy: #202638;
+        --gold: #c5a24b;
+        --border-subtle: #ece9e3;
+        --border-soft: #dedad2;
+        --radius-card: 22px;
+        --radius-panel: 26px;
+        --radius-pill: 999px;
+        --space-xs: 6px;
+        --space-sm: 12px;
+        --space-md: 20px;
+        --space-lg: 32px;
+        --space-xl: 56px;
+        --space-screen-top: 72px;
+        --shadow-paper: 0 1px 2px rgba(30, 30, 28, 0.04);
+        --serif: "Iowan Old Style", "Baskerville", "Libre Baskerville", serif;
+        --serif-italic: "CormorantGaramondItalic", "Times New Roman", serif;
+        --sans: "Helvetica Neue", "Avenir Next", Arial, sans-serif;
+        --max-width: 1240px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        background:
+          radial-gradient(circle at top left, rgba(239, 231, 201, 0.55), transparent 32%),
+          radial-gradient(circle at 85% 8%, rgba(169, 77, 40, 0.09), transparent 20%),
+          linear-gradient(180deg, #f8f7f3 0%, #f2f0eb 100%);
+        color: var(--text);
+        font-family: var(--sans);
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.28;
+        background-image:
+          linear-gradient(rgba(30, 30, 28, 0.02) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(30, 30, 28, 0.02) 1px, transparent 1px);
+        background-size: 18px 18px;
+        mask-image: linear-gradient(180deg, black 50%, transparent 100%);
+      }
+
+      a {
+        color: inherit;
+      }
+
+      .page {
+        width: min(calc(100% - 40px), var(--max-width));
+        margin: 0 auto;
+        padding: 28px 0 64px;
+      }
+
+      .hero {
+        position: relative;
+        overflow: hidden;
+        padding: 28px;
+        background: rgba(251, 250, 247, 0.82);
+        border: 1px solid rgba(222, 218, 210, 0.7);
+        border-radius: 36px;
+        box-shadow: 0 20px 60px rgba(32, 38, 56, 0.06);
+        backdrop-filter: blur(10px);
+      }
+
+      .hero::after {
+        content: "";
+        position: absolute;
+        right: -60px;
+        top: -70px;
+        width: 280px;
+        height: 280px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(169, 77, 40, 0.2), transparent 67%);
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 14px;
+        border: 1px solid var(--border-soft);
+        border-radius: var(--radius-pill);
+        font-size: 11px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--text-secondary);
+        background: rgba(255, 255, 255, 0.66);
+      }
+
+      .hero-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.2fr) minmax(320px, 430px);
+        gap: 32px;
+        align-items: center;
+        margin-top: 22px;
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        font-family: var(--serif);
+        font-weight: 500;
+        letter-spacing: 0.01em;
+      }
+
+      h1 {
+        max-width: 10ch;
+        font-size: clamp(3.4rem, 8vw, 6.8rem);
+        line-height: 0.9;
+      }
+
+      .lede {
+        max-width: 62ch;
+        margin: 20px 0 0;
+        color: var(--text-secondary);
+        font-size: 1rem;
+        line-height: 1.7;
+      }
+
+      .hero-note {
+        margin-top: 24px;
+        padding-left: 18px;
+        border-left: 2px solid rgba(169, 77, 40, 0.3);
+        font-family: var(--serif-italic);
+        font-size: 1.35rem;
+        color: var(--terracotta-dark);
+      }
+
+      .hero-card {
+        position: relative;
+        padding: 26px;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(251, 250, 247, 0.96)),
+          var(--surface-soft);
+        border-radius: 28px;
+        border: 1px solid var(--border-subtle);
+        box-shadow: 0 22px 40px rgba(32, 38, 56, 0.08);
+      }
+
+      .hero-card::before,
+      .hero-card::after {
+        content: "";
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(1px);
+      }
+
+      .hero-card::before {
+        right: 22px;
+        top: 24px;
+        width: 84px;
+        height: 84px;
+        background: rgba(169, 77, 40, 0.12);
+      }
+
+      .hero-card::after {
+        left: -20px;
+        bottom: -22px;
+        width: 110px;
+        height: 110px;
+        background: rgba(143, 166, 107, 0.14);
+      }
+
+      .mini-label {
+        font-size: 11px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+      }
+
+      .card-title {
+        margin-top: 10px;
+        font-family: var(--serif);
+        font-size: 2rem;
+        line-height: 1;
+      }
+
+      .hero-card p {
+        margin: 12px 0 0;
+        color: var(--text-secondary);
+        line-height: 1.65;
+      }
+
+      .tag-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 20px;
+      }
+
+      .tag {
+        padding: 9px 14px;
+        border-radius: var(--radius-pill);
+        border: 1px solid var(--border-soft);
+        background: rgba(255, 255, 255, 0.7);
+        font-size: 0.86rem;
+        color: var(--text-secondary);
+      }
+
+      .section {
+        margin-top: 26px;
+        padding: 28px;
+        background: rgba(251, 250, 247, 0.74);
+        border: 1px solid rgba(236, 233, 227, 0.9);
+        border-radius: 30px;
+      }
+
+      .section-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        align-items: end;
+        margin-bottom: 24px;
+      }
+
+      .section-head p {
+        max-width: 58ch;
+        margin: 0;
+        color: var(--text-secondary);
+        line-height: 1.65;
+      }
+
+      .section-head h2 {
+        font-size: clamp(2rem, 4vw, 3.5rem);
+        line-height: 0.96;
+      }
+
+      .swatch-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
+        gap: 16px;
+      }
+
+      .swatch {
+        padding: 14px;
+        border-radius: 20px;
+        border: 1px solid var(--border-subtle);
+        background: rgba(255, 255, 255, 0.86);
+      }
+
+      .swatch-chip {
+        height: 118px;
+        border-radius: 16px;
+        border: 1px solid rgba(30, 30, 28, 0.05);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+      }
+
+      .swatch strong,
+      .token-card strong {
+        display: block;
+        margin-top: 12px;
+        font-family: var(--serif);
+        font-size: 1.1rem;
+        font-weight: 500;
+      }
+
+      .token-meta {
+        margin-top: 6px;
+        color: var(--text-secondary);
+        font-size: 0.88rem;
+        line-height: 1.5;
+      }
+
+      .type-grid,
+      .token-grid,
+      .component-grid,
+      .rule-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 18px;
+      }
+
+      .type-sample,
+      .token-card,
+      .component-card,
+      .rule-card {
+        padding: 18px;
+        border-radius: 22px;
+        background: rgba(255, 255, 255, 0.88);
+        border: 1px solid var(--border-subtle);
+        box-shadow: var(--shadow-paper);
+      }
+
+      .type-sample .sample {
+        margin-top: 14px;
+      }
+
+      .type-display {
+        font-family: var(--serif);
+        font-size: clamp(2.1rem, 5vw, 4rem);
+        line-height: 0.92;
+      }
+
+      .type-italic {
+        font-family: var(--serif-italic);
+        font-style: italic;
+        font-size: 1.8rem;
+        color: var(--terracotta-dark);
+      }
+
+      .type-body {
+        max-width: 38ch;
+        color: var(--text-secondary);
+        line-height: 1.72;
+      }
+
+      .token-stack {
+        display: grid;
+        gap: 10px;
+      }
+
+      .token-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid rgba(236, 233, 227, 0.95);
+        font-size: 0.95rem;
+      }
+
+      .token-row:last-child {
+        border-bottom: 0;
+        padding-bottom: 0;
+      }
+
+      .token-row code {
+        color: var(--text-muted);
+      }
+
+      .component-preview {
+        margin-top: 16px;
+        min-height: 190px;
+        padding: 18px;
+        border-radius: 20px;
+        background: linear-gradient(180deg, rgba(247, 246, 242, 0.8), rgba(255, 255, 255, 0.9));
+        border: 1px dashed rgba(169, 77, 40, 0.16);
+      }
+
+      .editorial-card {
+        padding: 18px;
+        background: var(--surface);
+        border-radius: var(--radius-card);
+        border: 1px solid var(--border-subtle);
+      }
+
+      .editorial-card h3 {
+        font-size: 1.55rem;
+        line-height: 1;
+      }
+
+      .editorial-card p {
+        margin: 10px 0 0;
+        color: var(--text-secondary);
+        line-height: 1.6;
+      }
+
+      .pill-note {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 12px;
+        margin-bottom: 14px;
+        border-radius: var(--radius-pill);
+        background: rgba(239, 231, 201, 0.62);
+        font-size: 0.8rem;
+        color: var(--terracotta-dark);
+      }
+
+      .cta-preview {
+        display: grid;
+        place-items: center;
+      }
+
+      .cta-circle {
+        width: 96px;
+        height: 96px;
+        border: 0;
+        border-radius: 50%;
+        background: var(--terracotta);
+        color: var(--text-inverse);
+        font-family: var(--serif);
+        font-size: 1.15rem;
+        cursor: pointer;
+        box-shadow: 0 14px 24px rgba(169, 77, 40, 0.22);
+        transition:
+          transform 120ms ease-out,
+          background 120ms ease-out;
+      }
+
+      .cta-circle:hover {
+        background: var(--terracotta-dark);
+        transform: translateY(-2px);
+      }
+
+      .cta-circle:active {
+        transform: scale(0.97);
+      }
+
+      .tab-preview {
+        overflow: hidden;
+      }
+
+      .tabs {
+        display: flex;
+        gap: 18px;
+        min-width: max-content;
+        padding-bottom: 6px;
+        font-family: var(--serif);
+        font-size: clamp(2rem, 4vw, 2.6rem);
+      }
+
+      .tabs span {
+        color: var(--text-muted);
+      }
+
+      .tabs span.active {
+        color: var(--text);
+      }
+
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+      }
+
+      .stat {
+        padding: 16px 12px;
+        border-radius: var(--radius-card);
+        border: 1px solid var(--border-subtle);
+        background: var(--surface);
+        text-align: center;
+      }
+
+      .stat small {
+        display: block;
+        color: var(--text-muted);
+        font-family: var(--serif-italic);
+        font-size: 0.88rem;
+        font-style: italic;
+      }
+
+      .stat strong {
+        margin-top: 8px;
+        font-family: var(--serif);
+        font-size: 2rem;
+        font-weight: 500;
+      }
+
+      .phone-wrap {
+        display: grid;
+        grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
+        gap: 24px;
+        align-items: center;
+      }
+
+      .phone {
+        position: relative;
+        min-height: 720px;
+        padding: 20px;
+        background:
+          linear-gradient(180deg, rgba(247, 246, 242, 0.98), rgba(241, 240, 236, 0.98)),
+          var(--paper);
+        border-radius: 42px;
+        border: 1px solid rgba(222, 218, 210, 0.95);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.7),
+          0 24px 60px rgba(32, 38, 56, 0.12);
+        overflow: hidden;
+      }
+
+      .phone::before {
+        content: "";
+        position: absolute;
+        top: 12px;
+        left: 50%;
+        width: 128px;
+        height: 22px;
+        border-radius: 999px;
+        background: rgba(30, 30, 28, 0.82);
+        transform: translateX(-50%);
+      }
+
+      .phone-inner {
+        padding-top: var(--space-screen-top);
+      }
+
+      .phone-nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-family: var(--serif);
+        font-size: 1rem;
+      }
+
+      .phone-nav span:last-child {
+        color: var(--text-muted);
+      }
+
+      .phone-tabs {
+        display: flex;
+        gap: 18px;
+        margin-top: 28px;
+        font-family: var(--serif);
+        font-size: 2.3rem;
+        white-space: nowrap;
+      }
+
+      .phone-tabs span {
+        color: var(--text-muted);
+      }
+
+      .phone-tabs .active {
+        color: var(--text);
+      }
+
+      .collage {
+        position: relative;
+        height: 190px;
+        margin-top: 24px;
+      }
+
+      .shape,
+      .photo,
+      .leaf-stroke {
+        position: absolute;
+      }
+
+      .shape {
+        border-radius: 50%;
+        filter: blur(0.2px);
+      }
+
+      .shape.one {
+        top: 4px;
+        left: 12px;
+        width: 130px;
+        height: 130px;
+        background: rgba(143, 166, 107, 0.28);
+      }
+
+      .shape.two {
+        right: 6px;
+        top: 12px;
+        width: 120px;
+        height: 120px;
+        background: rgba(216, 74, 43, 0.12);
+      }
+
+      .photo {
+        display: grid;
+        place-items: center;
+        border-radius: 24px;
+        background: linear-gradient(135deg, #f3e5d6, #eadac9);
+        box-shadow: 0 16px 24px rgba(32, 38, 56, 0.08);
+      }
+
+      .photo.one {
+        left: 28px;
+        top: 24px;
+        width: 128px;
+        height: 152px;
+        transform: rotate(-6deg);
+      }
+
+      .photo.two {
+        right: 32px;
+        top: 48px;
+        width: 112px;
+        height: 130px;
+        transform: rotate(7deg);
+        background: linear-gradient(135deg, #fbf5eb, #f2e8d8);
+      }
+
+      .photo::before {
+        content: "";
+        width: 78%;
+        height: 78%;
+        border-radius: 18px;
+        background:
+          radial-gradient(circle at 30% 35%, rgba(255, 255, 255, 0.85), transparent 28%),
+          linear-gradient(180deg, rgba(216, 74, 43, 0.18), rgba(32, 38, 56, 0.07));
+      }
+
+      .leaf-stroke {
+        left: 158px;
+        top: 36px;
+        width: 80px;
+        height: 120px;
+        border: 1.8px solid rgba(143, 166, 107, 0.5);
+        border-color: rgba(143, 166, 107, 0.5) transparent transparent transparent;
+        border-radius: 50% 50% 50% 50%;
+        transform: rotate(20deg);
+      }
+
+      .feature-card {
+        margin-top: 18px;
+        padding: 18px;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: var(--radius-panel);
+        border: 1px solid var(--border-subtle);
+      }
+
+      .feature-card h3 {
+        font-size: 1.55rem;
+      }
+
+      .feature-card p {
+        margin: 10px 0 14px;
+        color: var(--text-secondary);
+        line-height: 1.65;
+      }
+
+      .feature-card .meta {
+        font-family: var(--serif-italic);
+        font-size: 0.98rem;
+        color: var(--text-muted);
+      }
+
+      .phone-bottom {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 14px;
+        align-items: end;
+        margin-top: 16px;
+      }
+
+      .spec-list {
+        display: grid;
+        gap: 12px;
+      }
+
+      .spec-item {
+        padding: 14px 16px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.78);
+        border: 1px solid var(--border-subtle);
+      }
+
+      .spec-item strong {
+        display: block;
+        font-family: var(--serif);
+        font-size: 1.1rem;
+        font-weight: 500;
+      }
+
+      .spec-item span {
+        display: block;
+        margin-top: 6px;
+        color: var(--text-secondary);
+        line-height: 1.6;
+      }
+
+      .rule-card h3 {
+        font-size: 1.55rem;
+      }
+
+      .rule-card ul {
+        margin: 14px 0 0;
+        padding-left: 18px;
+        color: var(--text-secondary);
+        line-height: 1.75;
+      }
+
+      .footer {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        margin-top: 24px;
+        padding: 18px 6px 0;
+        color: var(--text-secondary);
+        font-size: 0.92rem;
+      }
+
+      .reveal {
+        opacity: 0;
+        transform: translateY(18px);
+        animation: fade-up 680ms ease forwards;
+      }
+
+      .delay-1 { animation-delay: 80ms; }
+      .delay-2 { animation-delay: 160ms; }
+      .delay-3 { animation-delay: 240ms; }
+      .delay-4 { animation-delay: 320ms; }
+
+      @keyframes fade-up {
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @media (max-width: 980px) {
+        .hero-grid,
+        .phone-wrap {
+          grid-template-columns: 1fr;
+        }
+
+        .section-head,
+        .footer {
+          flex-direction: column;
+          align-items: start;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .page {
+          width: min(calc(100% - 22px), var(--max-width));
+          padding-top: 12px;
+          padding-bottom: 34px;
+        }
+
+        .hero,
+        .section {
+          padding: 20px;
+          border-radius: 24px;
+        }
+
+        h1 {
+          font-size: 3.3rem;
+        }
+
+        .phone {
+          min-height: auto;
+        }
+
+        .stat-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <section class="hero reveal">
+        <span class="eyebrow">Editorial Vibe App Design Guideline</span>
+        <div class="hero-grid">
+          <div>
+            <h1>Warm editorial calm.</h1>
+            <p class="lede">
+              This guideline translates your design tokens and style notes into
+              a living reference page. The system is built to feel like an
+              interactive lifestyle magazine: paper-like surfaces, quiet serif
+              rhythm, soft white cards, collage composition, and terracotta
+              actions used with restraint.
+            </p>
+            <div class="hero-note">
+              Build the app as a warm editorial lifestyle magazine, not as a
+              dashboard.
+            </div>
+          </div>
+          <aside class="hero-card reveal delay-1">
+            <div class="mini-label">Tone and signal</div>
+            <div class="card-title">Curated, tactile, feminine.</div>
+            <p>
+              The interface should feel art-directed rather than optimized for
+              density. White space, crop, and typography create hierarchy before
+              controls do.
+            </p>
+            <div class="tag-row">
+              <span class="tag">Warm paper</span>
+              <span class="tag">French minimal</span>
+              <span class="tag">Soft luxury</span>
+              <span class="tag">Lifestyle collage</span>
+              <span class="tag">Magazine pacing</span>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="section reveal delay-1">
+        <div class="section-head">
+          <div>
+            <div class="mini-label">Color system</div>
+            <h2>Paper first, accents last.</h2>
+          </div>
+          <p>
+            Base the UI on warm whites, canvas neutrals, and near-black text.
+            Terracotta is reserved for the most intentional actions. Imagery-led
+            accents like tomato, leaf, gold, and cream should support the mood,
+            not dominate the layout.
+          </p>
+        </div>
+        <div class="swatch-grid" id="swatch-grid"><article class="swatch">
+          <div class="swatch-chip" style="background:#F7F6F2;"></div>
+          <strong>Paper</strong>
+          <div class="token-meta">#F7F6F2<br>Warm paper white for primary backgrounds.</div>
+        </article><article class="swatch">
+          <div class="swatch-chip" style="background:#F1F0EC;"></div>
+          <strong>Canvas</strong>
+          <div class="token-meta">#F1F0EC<br>Soft warm gray behind compositions.</div>
+        </article><article class="swatch">
+          <div class="swatch-chip" style="background:#E8E6E1;"></div>
+          <strong>Muted</strong>
+          <div class="token-meta">#E8E6E1<br>Neutral support background.</div>
+        </article><article class="swatch">
+          <div class="swatch-chip" style="background:#A94D28;"></div>
+          <strong>Terracotta</strong>
+          <div class="token-meta">#A94D28<br>Reserved for the primary action.</div>
+        </article><article class="swatch">
+          <div class="swatch-chip" style="background:#8F3E20;"></div>
+          <strong>Terracotta Dark</strong>
+          <div class="token-meta">#8F3E20<br>Pressed or active CTA state.</div>
+        </article><article class="swatch">
+          <div class="swatch-chip" style="background:#D84A2B;"></div>
+          <strong>Tomato</strong>
+          <div class="token-meta">#D84A2B<br>Illustration-derived accent.</div>
+        </article><article class="swatch">
+          <div class="swatch-chip" style="background:#8FA66B;"></div>
+          <strong>Leaf</strong>
+          <div class="token-meta">#8FA66B<br>Vegetable and natural cue.</div>
+        </article><article class="swatch">
+          <div class="swatch-chip" style="background:#EFE7C9;"></div>
+          <strong>Cream</strong>
+          <div class="token-meta">#EFE7C9<br>Soft collage highlight.</div>
+        </article><article class="swatch">
+          <div class="swatch-chip" style="background:#202638;"></div>
+          <strong>Navy</strong>
+          <div class="token-meta">#202638<br>Deep outfit-inspired contrast.</div>
+        </article><article class="swatch">
+          <div class="swatch-chip" style="background:#C5A24B;"></div>
+          <strong>Gold</strong>
+          <div class="token-meta">#C5A24B<br>Premium detail accent.</div>
+        </article></div>
+      </section>
+
+      <section class="section reveal delay-2">
+        <div class="section-head">
+          <div>
+            <div class="mini-label">Typography</div>
+            <h2>Serif hierarchy with quiet utility.</h2>
+          </div>
+          <p>
+            Use editorial serif for titles, navigation, tabs, statistics, and
+            emphasis. Use a restrained sans-serif for functional descriptions
+            and compact UI detail. Metadata can lean italic and delicate.
+          </p>
+        </div>
+        <div class="type-grid">
+          <article class="type-sample">
+            <div class="mini-label">Display title</div>
+            <div class="sample type-display">Findings, Activities, Vibe.</div>
+            <div class="token-meta">42px hero / 28px tabs / line-height 0.92</div>
+          </article>
+          <article class="type-sample">
+            <div class="mini-label">Editorial metadata</div>
+            <div class="sample type-italic">Article of the Month</div>
+            <div class="token-meta">Use for bylines, labels, and gentle context.</div>
+          </article>
+          <article class="type-sample">
+            <div class="mini-label">Functional body</div>
+            <div class="sample type-body">
+              Clean sans-serif keeps descriptions readable and lets the serif
+              voice stay special. Body copy should feel light, never dense or
+              technical.
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section reveal delay-2">
+        <div class="section-head">
+          <div>
+            <div class="mini-label">Core tokens</div>
+            <h2>Spacing, radius, motion.</h2>
+          </div>
+          <p>
+            The system relies on soft geometry and gentle pacing. Rounded panels
+            and slow editorial breathing room matter more than dramatic shadow
+            or dense controls.
+          </p>
+        </div>
+        <div class="token-grid">
+          <article class="token-card">
+            <strong>Spacing</strong>
+            <div class="token-stack" id="space-list"><div class="token-row"><span>xs</span><code>6px</code></div><div class="token-row"><span>sm</span><code>12px</code></div><div class="token-row"><span>md</span><code>20px</code></div><div class="token-row"><span>lg</span><code>32px</code></div><div class="token-row"><span>xl</span><code>56px</code></div><div class="token-row"><span>screenTop</span><code>72px</code></div></div>
+          </article>
+          <article class="token-card">
+            <strong>Radius</strong>
+            <div class="token-stack" id="radius-list"><div class="token-row"><span>card</span><code>22px</code></div><div class="token-row"><span>panel</span><code>26px</code></div><div class="token-row"><span>pill</span><code>999px</code></div><div class="token-row"><span>circle</span><code>50%</code></div></div>
+          </article>
+          <article class="token-card">
+            <strong>Motion</strong>
+            <div class="token-stack" id="motion-list"><div class="token-row"><span>tabScroll</span><code>280ms ease-out</code></div><div class="token-row"><span>cardPress</span><code>120ms ease-out</code></div><div class="token-row"><span>ctaPressScale</span><code>0.97</code></div></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section reveal delay-3">
+        <div class="section-head">
+          <div>
+            <div class="mini-label">Component language</div>
+            <h2>Soft cards, serif tabs, circular CTA.</h2>
+          </div>
+          <p>
+            Components should feel like layout fragments on a page, not rigid
+            product widgets. Borders stay subtle, shadows almost disappear, and
+            the terracotta CTA acts like a visual signature.
+          </p>
+        </div>
+        <div class="component-grid">
+          <article class="component-card">
+            <strong>Card</strong>
+            <div class="token-meta">White surface, 22px radius, 1px subtle border.</div>
+            <div class="component-preview">
+              <div class="editorial-card">
+                <div class="pill-note">Recently Posted</div>
+                <h3>Plant-based rituals for slower mornings.</h3>
+                <p>
+                  Compose content like a print block. Image, title, metadata,
+                  and callout should breathe inside the card.
+                </p>
+              </div>
+            </div>
+          </article>
+          <article class="component-card">
+            <strong>Primary CTA</strong>
+            <div class="token-meta">96px circle, terracotta fill, white serif label.</div>
+            <div class="component-preview cta-preview">
+              <button class="cta-circle" type="button">Join</button>
+            </div>
+          </article>
+          <article class="component-card">
+            <strong>Tabs</strong>
+            <div class="token-meta">Large serif words with horizontal overflow and soft crop.</div>
+            <div class="component-preview tab-preview">
+              <div class="tabs">
+                <span class="active">Clubs</span>
+                <span>Findings</span>
+                <span>Activities</span>
+                <span>Keywords</span>
+              </div>
+            </div>
+          </article>
+          <article class="component-card">
+            <strong>Stat card</strong>
+            <div class="token-meta">Muted italic label with centered serif number.</div>
+            <div class="component-preview">
+              <div class="stat-grid">
+                <div class="stat">
+                  <small>Saved</small>
+                  <strong>24</strong>
+                </div>
+                <div class="stat">
+                  <small>Joined</small>
+                  <strong>08</strong>
+                </div>
+                <div class="stat">
+                  <small>Notes</small>
+                  <strong>12</strong>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section reveal delay-3">
+        <div class="section-head">
+          <div>
+            <div class="mini-label">Reference preview</div>
+            <h2>A sample screen in system voice.</h2>
+          </div>
+          <p>
+            This mock screen shows how the tokens come together in context:
+            generous top space, serif navigation, a collage moment, a quiet
+            feature card, and one strong circular action.
+          </p>
+        </div>
+        <div class="phone-wrap">
+          <div class="phone">
+            <div class="phone-inner">
+              <div class="phone-nav">
+                <span>About</span>
+                <span>Recently Posted</span>
+              </div>
+              <div class="phone-tabs">
+                <span class="active">Clubs</span>
+                <span>Findings</span>
+                <span>Activities</span>
+              </div>
+              <div class="collage">
+                <div class="shape one"></div>
+                <div class="shape two"></div>
+                <div class="photo one"></div>
+                <div class="photo two"></div>
+                <div class="leaf-stroke"></div>
+              </div>
+              <div class="feature-card">
+                <div class="meta">Article of the Month</div>
+                <h3>Curate a softer rhythm for every screen.</h3>
+                <p>
+                  Let images float like a moodboard, keep controls quiet, and
+                  use typography to guide the eye before interface chrome does.
+                </p>
+              </div>
+              <div class="phone-bottom">
+                <div class="stat-grid">
+                  <div class="stat">
+                    <small>Reads</small>
+                    <strong>42</strong>
+                  </div>
+                  <div class="stat">
+                    <small>Saved</small>
+                    <strong>17</strong>
+                  </div>
+                  <div class="stat">
+                    <small>Clubs</small>
+                    <strong>05</strong>
+                  </div>
+                </div>
+                <button class="cta-circle" type="button">Save</button>
+              </div>
+            </div>
+          </div>
+          <div class="spec-list">
+            <div class="spec-item">
+              <strong>Layout principle</strong>
+              <span>Give the top of the screen breathing room. Main rhythm begins lower than a typical utility app.</span>
+            </div>
+            <div class="spec-item">
+              <strong>Imagery treatment</strong>
+              <span>Favor collage, hand-drawn objects, lifestyle sketches, and paper-like depth over stock-heavy hero banners.</span>
+            </div>
+            <div class="spec-item">
+              <strong>Interaction feel</strong>
+              <span>Tabs move at 280ms ease-out, cards press at 120ms, and the CTA scales to 0.97 on press.</span>
+            </div>
+            <div class="spec-item">
+              <strong>What to avoid</strong>
+              <span>No SaaS dashboard grids, no strong shadows, no saturated digital gradients, and no icon-heavy chrome.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section reveal delay-4">
+        <div class="section-head">
+          <div>
+            <div class="mini-label">Usage rules</div>
+            <h2>Do less, but art-direct more.</h2>
+          </div>
+          <p>
+            The system is strongest when it feels restrained and composed. Use
+            real white space, keep the palette disciplined, and allow a small
+            number of expressive moments to carry the identity.
+          </p>
+        </div>
+        <div class="rule-grid">
+          <article class="rule-card">
+            <h3>Do</h3>
+            <ul>
+              <li>Use warm white backgrounds and near-black editorial text.</li>
+              <li>Let serif typography carry page hierarchy and navigation.</li>
+              <li>Use terracotta only for the clearest, highest-priority action.</li>
+              <li>Compose content with asymmetry, crop, and generous negative space.</li>
+              <li>Choose illustrations and cutout imagery that feel tactile and curated.</li>
+            </ul>
+          </article>
+          <article class="rule-card">
+            <h3>Don't</h3>
+            <ul>
+              <li>Do not turn the interface into a dashboard or productivity app.</li>
+              <li>Do not stack cards inside cards without a clear editorial reason.</li>
+              <li>Do not rely on glossy effects, loud gradients, or hard contrast.</li>
+              <li>Do not overfill empty space; calm is part of the visual identity.</li>
+              <li>Do not let metadata or icons overpower the main story.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <div class="footer">
+        <span>Source inputs: design tokens, design system style notes, provided Cormorant Garamond italic font.</span>
+        <span>Built as a living HTML guideline for review and iteration.</span>
+      </div>
+    </div>
+
+    <script>
+      const swatches = [
+        {
+          name: "Paper",
+          value: "#F7F6F2",
+          note: "Warm paper white for primary backgrounds."
+        },
+        {
+          name: "Canvas",
+          value: "#F1F0EC",
+          note: "Soft warm gray behind compositions."
+        },
+        {
+          name: "Muted",
+          value: "#E8E6E1",
+          note: "Neutral support background."
+        },
+        {
+          name: "Terracotta",
+          value: "#A94D28",
+          note: "Reserved for the primary action."
+        },
+        {
+          name: "Terracotta Dark",
+          value: "#8F3E20",
+          note: "Pressed or active CTA state."
+        },
+        {
+          name: "Tomato",
+          value: "#D84A2B",
+          note: "Illustration-derived accent."
+        },
+        {
+          name: "Leaf",
+          value: "#8FA66B",
+          note: "Vegetable and natural cue."
+        },
+        {
+          name: "Cream",
+          value: "#EFE7C9",
+          note: "Soft collage highlight."
+        },
+        {
+          name: "Navy",
+          value: "#202638",
+          note: "Deep outfit-inspired contrast."
+        },
+        {
+          name: "Gold",
+          value: "#C5A24B",
+          note: "Premium detail accent."
+        }
+      ];
+
+      const tokenGroups = {
+        "space-list": [
+          ["xs", "6px"],
+          ["sm", "12px"],
+          ["md", "20px"],
+          ["lg", "32px"],
+          ["xl", "56px"],
+          ["screenTop", "72px"]
+        ],
+        "radius-list": [
+          ["card", "22px"],
+          ["panel", "26px"],
+          ["pill", "999px"],
+          ["circle", "50%"]
+        ],
+        "motion-list": [
+          ["tabScroll", "280ms ease-out"],
+          ["cardPress", "120ms ease-out"],
+          ["ctaPressScale", "0.97"]
+        ]
+      };
+
+      const swatchGrid = document.getElementById("swatch-grid");
+      swatches.forEach((swatch) => {
+        const card = document.createElement("article");
+        card.className = "swatch";
+        card.innerHTML = `
+          <div class="swatch-chip" style="background:${swatch.value};"></div>
+          <strong>${swatch.name}</strong>
+          <div class="token-meta">${swatch.value}<br>${swatch.note}</div>
+        `;
+        swatchGrid.appendChild(card);
+      });
+
+      Object.entries(tokenGroups).forEach(([id, rows]) => {
+        const parent = document.getElementById(id);
+        rows.forEach(([name, value]) => {
+          const row = document.createElement("div");
+          row.className = "token-row";
+          row.innerHTML = `<span>${name}</span><code>${value}</code>`;
+          parent.appendChild(row);
+        });
+      });
+    </script>
+  
+
+<div id="twa-injected-pixel" twa="true" style="width: 1px; height: 1px; position: absolute; top: 0px; right: 1px; background-color: transparent;"></div></body></html>
