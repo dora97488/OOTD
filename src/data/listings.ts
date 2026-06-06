@@ -11,6 +11,11 @@ export async function listListings(): Promise<Listing[]> {
   return all.sort((a, b) => b.createdAt - a.createdAt);
 }
 
+/** 局部更新轉售草稿（如標記已售 status:'sold'）。回傳更新筆數。 */
+export function updateListing(id: string, patch: Partial<Listing>): Promise<number> {
+  return db.listings.update(id, patch);
+}
+
 export function deleteListing(id: string): Promise<void> {
   return db.listings.delete(id);
 }
