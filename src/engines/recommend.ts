@@ -37,9 +37,17 @@ export function scoreItem(
   let s = 0;
   if (luckyWuxing.includes(i.wuxing)) s += 3;
   if (favorable.includes(i.wuxing)) s += 2;
-  if (i.season === season || i.season === '四季') s += 1;
+  if (matchesSeason(i.season, season)) s += 1;
   if (unfavorable.includes(i.wuxing)) s -= 2;
   return s;
+}
+
+function matchesSeason(itemSeason: Season, currentSeason: Season): boolean {
+  if (itemSeason === '四季') return true;
+  if (itemSeason === currentSeason) return true;
+  if (currentSeason.length === 1 && itemSeason.includes(currentSeason)) return true;
+  if (itemSeason.length === 1 && currentSeason.includes(itemSeason)) return true;
+  return false;
 }
 
 // 從各類別挑最高分單品，組一套今日建議。

@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>星櫥 — 新增衣物 Prototype（黑白）</title>
+<style>
+  :root{ --ink:#141414; --soft:#767676; --line:#e1e1e1; --fill:#f5f5f5; --dark:#1f1f1f; }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  body{font-family:system-ui,"Noto Sans TC",sans-serif;background:#ededed;color:var(--ink);
+    min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 14px 40px;}
+  .lead{text-align:center;margin-bottom:16px;max-width:420px;}
+  .lead h1{font-size:15px;font-weight:600;}
+  .lead p{font-size:12px;color:var(--soft);margin-top:5px;line-height:1.5;}
+
+  .phone{width:390px;max-width:100%;height:820px;background:#fff;border-radius:40px;overflow:hidden;position:relative;
+    display:flex;flex-direction:column;box-shadow:0 16px 40px rgba(0,0,0,.22),0 0 0 9px #111,0 0 0 10px #000;}
+  .statusbar{height:42px;display:flex;justify-content:space-between;align-items:center;padding:0 24px;font-size:13px;font-weight:600;flex:0 0 auto;z-index:2;}
+
+  /* ---------- base: closet ---------- */
+  #closet{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+  .appbar{padding:4px 18px 12px;font-size:19px;font-weight:700;flex:0 0 auto;}
+  .closetbody{flex:1;overflow-y:auto;padding:0 16px 90px;}
+  .cgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .citem{border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-align:center;}
+  .citem .thumb{height:58px;display:flex;align-items:center;justify-content:center;}
+  .citem .thumb svg{width:46px;height:46px;}
+  .citem .cn{font-size:10.5px;color:var(--soft);margin-top:4px;}
+  .addbar{position:absolute;left:0;right:0;bottom:0;padding:14px 16px 26px;background:linear-gradient(transparent,#fff 30%);}
+  .addbtn{width:100%;border:none;border-radius:14px;padding:16px;background:var(--ink);color:#fff;font-family:inherit;font-size:14.5px;font-weight:600;cursor:pointer;}
+
+  /* ---------- full-screen layers ---------- */
+  .full{position:absolute;inset:0;z-index:10;display:none;flex-direction:column;}
+  .full.on{display:flex;animation:fade .25s ease;}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+
+  /* camera */
+  #camera{background:#262626;color:#fff;}
+  .cam-top{display:flex;justify-content:flex-end;padding:14px 16px;}
+  .cam-x{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.18);border:none;color:#fff;font-size:18px;cursor:pointer;}
+  .cam-feed{flex:1;position:relative;display:flex;align-items:center;justify-content:center;}
+  .cam-feed .corner{position:absolute;width:26px;height:26px;border:2px solid rgba(255,255,255,.6);}
+  .cam-feed .ctxt{font-size:13px;color:rgba(255,255,255,.5);}
+  .cam-bottom{flex:0 0 auto;padding:0 0 34px;text-align:center;}
+  .cam-hint{font-size:12.5px;color:rgba(255,255,255,.72);margin-bottom:18px;line-height:1.5;}
+  .shutter{width:72px;height:72px;border-radius:50%;background:#fff;border:4px solid rgba(255,255,255,.45);margin:0 auto;cursor:pointer;transition:.12s;}
+  .shutter:active{transform:scale(.92);}
+  .cam-album{display:block;margin-top:16px;font-size:12px;color:rgba(255,255,255,.7);cursor:pointer;}
+
+  /* analyzing */
+  #analyzing{background:#262626;color:#fff;align-items:center;justify-content:center;}
+  .spin{width:32px;height:32px;border:3px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;margin:0 auto 16px;animation:rot .7s linear infinite;}
+  @keyframes rot{to{transform:rotate(360deg)}}
+  #analyzing p{font-size:14px;font-weight:500;}
+  #analyzing span{font-size:12px;color:rgba(255,255,255,.6);display:block;margin-top:6px;}
+
+  /* result */
+  #result{background:#000;}
+  .res-photo{flex:1;position:relative;background:#d6d6d6;overflow:hidden;}
+  .res-top{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;padding:14px 16px;z-index:3;}
+  .res-top button{border:none;border-radius:18px;background:rgba(0,0,0,.55);color:#fff;font-family:inherit;font-size:12.5px;padding:7px 13px;cursor:pointer;}
+  .res-top .x{width:34px;height:34px;border-radius:50%;padding:0;font-size:18px;}
+  .figure{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);height:86%;}
+  .figure svg{height:100%;}
+  .reshint{position:absolute;top:58px;left:0;right:0;text-align:center;font-size:11px;color:#555;}
+  .hotspot{position:absolute;transform:translate(-50%,-50%);display:flex;align-items:center;gap:7px;background:none;border:none;cursor:pointer;z-index:2;}
+  .dot{width:26px;height:26px;border-radius:50%;background:#fff;border:2px solid #111;color:#111;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.35);animation:pulse 1.8s ease infinite;}
+  @keyframes pulse{0%,100%{box-shadow:0 2px 6px rgba(0,0,0,.35)}50%{box-shadow:0 2px 6px rgba(0,0,0,.35),0 0 0 6px rgba(255,255,255,.35)}}
+  .dlabel{background:#fff;border:1px solid #111;border-radius:13px;font-size:11px;padding:3px 9px;white-space:nowrap;}
+
+  .res-panel{flex:0 0 auto;background:#fff;border-radius:18px 18px 0 0;padding:14px 16px 18px;max-height:46%;overflow-y:auto;box-shadow:0 -6px 20px rgba(0,0,0,.18);}
+  .handle{width:38px;height:4px;border-radius:3px;background:#ccc;margin:0 auto 12px;}
+  .res-title{font-size:13px;font-weight:700;margin-bottom:3px;}
+  .res-sub{font-size:11px;color:var(--soft);margin-bottom:12px;}
+  .drow{display:flex;align-items:center;gap:11px;border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:8px;animation:rise .35s ease backwards;}
+  @keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .drow .num{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--ink);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
+  .drow .thumb{width:44px;height:44px;border:1px solid var(--line);border-radius:10px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
+  .drow .thumb svg{width:32px;height:32px;}
+  .drow .info{flex:1;}
+  .drow .info b{font-size:13px;}
+  .drow .info p{font-size:11px;color:var(--soft);margin-top:2px;}
+  .drow .ed{font-size:12px;font-weight:600;text-decoration:underline;cursor:pointer;}
+  .drow .rm{font-size:16px;color:var(--soft);cursor:pointer;padding:0 2px;}
+  .res-cta{width:100%;border:none;border-radius:14px;padding:15px;background:var(--ink);color:#fff;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;margin-top:4px;}
+
+  /* ---------- bottom sheet ---------- */
+  #backdrop{position:absolute;inset:0;background:rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:.25s;z-index:20;}
+  #backdrop.on{opacity:1;pointer-events:auto;}
+  #sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:22px 22px 0 0;padding:14px 18px 28px;
+    transform:translateY(100%);transition:.32s cubic-bezier(.32,.72,0,1);z-index:21;max-height:88%;overflow-y:auto;}
+  #sheet.on{transform:none;}
+  .sheet-head{display:flex;align-items:center;margin-bottom:14px;}
+  .sheet-head .bk{border:none;background:none;font-family:inherit;font-size:14px;color:var(--soft);cursor:pointer;padding:0;}
+  .sheet-head h3{flex:1;text-align:center;font-size:15px;font-weight:700;}
+  .sheet-head .sp{width:30px;}
+
+  .opt{width:100%;border:1px solid var(--line);border-radius:14px;padding:15px;display:flex;gap:13px;align-items:center;cursor:pointer;background:#fff;font-family:inherit;margin-bottom:11px;text-align:left;}
+  .opt:active{background:var(--fill);}
+  .opt .oic{width:42px;height:42px;border-radius:11px;background:var(--ink);display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
+  .opt .oic svg{width:22px;height:22px;}
+  .opt .t b{font-size:14px;}
+  .opt .t p{font-size:11.5px;color:var(--soft);margin-top:3px;line-height:1.5;}
+
+  .field{margin-bottom:13px;}
+  .field label{display:block;font-size:11.5px;color:var(--soft);font-weight:500;margin:0 2px 6px;}
+  .field label .auto{font-size:10px;text-decoration:underline;margin-left:6px;}
+  .field input,.field select{width:100%;font-family:inherit;font-size:14px;color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:11px;padding:12px 13px;outline:none;}
+  .field input:focus,.field select:focus{border-color:var(--ink);}
+  .field select{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23767676' stroke-width='2'><path d='M6 9l6 6 6-6'/></svg>");background-repeat:no-repeat;background-position:right 14px center;}
+  .twocol{display:flex;gap:10px;}.twocol .field{flex:1;}
+  .preview{height:140px;background:var(--fill);border:1px solid var(--line);border-radius:14px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;}
+  .preview svg{width:92px;height:92px;}
+  .infoline{font-size:11px;color:var(--soft);margin:-4px 2px 14px;}
+  .sheet-cta{width:100%;border:none;border-radius:14px;padding:15px;background:var(--ink);color:#fff;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;margin-top:4px;}
+
+  /* done */
+  .done{text-align:center;padding:8px 0 4px;}
+  .done .ring{width:74px;height:74px;border-radius:50%;border:2px solid var(--ink);margin:8px auto 18px;display:flex;align-items:center;justify-content:center;}
+  .done .ring svg{width:36px;height:36px;}
+  .done h3{font-size:18px;font-weight:700;}
+  .done p{font-size:12.5px;color:var(--soft);margin-top:7px;line-height:1.6;}
+  .done .row{display:flex;gap:8px;justify-content:center;margin:18px 0 22px;}
+  .done .ai{width:56px;height:56px;border:1px solid var(--line);border-radius:12px;display:flex;align-items:center;justify-content:center;}
+  .done .ai svg{width:40px;height:40px;}
+
+  .toast{position:absolute;left:50%;bottom:36px;transform:translate(-50%,16px);background:var(--ink);color:#fff;font-size:12.5px;padding:10px 17px;border-radius:18px;opacity:0;pointer-events:none;transition:.25s;z-index:60;text-align:center;max-width:80%;}
+  .toast.on{opacity:1;transform:translate(-50%,0);}
+</style>
+</head>
+<body>
+
+  <div class="lead">
+    <h1>星櫥 · 新增衣物 Prototype（黑白）</h1>
+    <p>衣櫥點「＋新增衣物」→ bottom sheet 升起 → 全螢幕拍照（AI 自動判斷件數）→ 結果頁照片上有定位點 → 編輯後加入衣櫥。</p>
+  </div>
+
+  <div class="phone">
+    <div class="statusbar"><span>13:24</span><span>•••  4G  57</span></div>
+
+    <!-- base: closet -->
+    <div id="closet">
+      <div class="appbar">我的衣櫥</div>
+      <div class="closetbody">
+        <div class="cgrid" id="cgrid"></div>
+      </div>
+      <div class="addbar"><button class="addbtn" onclick="openAdd()">＋ 新增衣物</button></div>
+    </div>
+
+    <!-- camera -->
+    <div class="full" id="camera">
+      <div class="cam-top"><button class="cam-x" onclick="resetAll()">✕</button></div>
+      <div class="cam-feed">
+        <div class="corner" style="top:28%;left:14%;border-right:none;border-bottom:none"></div>
+        <div class="corner" style="top:28%;right:14%;border-left:none;border-bottom:none"></div>
+        <div class="corner" style="bottom:18%;left:14%;border-right:none;border-top:none"></div>
+        <div class="corner" style="bottom:18%;right:14%;border-left:none;border-top:none"></div>
+        <span class="ctxt">相機畫面（全螢幕）</span>
+      </div>
+      <div class="cam-bottom">
+        <div class="cam-hint">拍整套穿搭或單件都可以<br>AI 會自動判斷、辨識出每一件</div>
+        <div class="shutter" onclick="capture()"></div>
+        <span class="cam-album" onclick="capture()">從相簿選擇</span>
+      </div>
+    </div>
+
+    <!-- analyzing -->
+    <div class="full" id="analyzing">
+      <div style="text-align:center"><div class="spin"></div><p>辨識中…</p><span>去背並拆解出畫面裡的每一件單品</span></div>
+    </div>
+
+    <!-- result -->
+    <div class="full" id="result"></div>
+
+    <!-- bottom sheet -->
+    <div id="backdrop" onclick="dismissSheet()"></div>
+    <div id="sheet"></div>
+
+    <div class="toast" id="toastEl"></div>
+  </div>
+
+<script>
+/* ---------- garment svg (灰階) ---------- */
+function garment(type){
+  const p={
+    top:'M22 10 L13 17 L18 26 L24 22 L24 54 L40 54 L40 22 L46 26 L51 17 L42 10 L38 13 C34 16 30 16 26 13 Z',
+    bottom:'M23 11 L41 11 L40 54 L33 54 L32 30 L31 54 L24 54 Z',
+    dress:'M25 10 L20 17 L25 23 L25 27 L17 54 L47 54 L39 27 L39 23 L44 17 L39 10 L35 13 C32 16 31 16 29 13 Z',
+    outer:'M22 10 L11 17 L16 28 L22 24 L22 54 L30 54 L30 15 L34 15 L34 54 L42 54 L42 24 L48 28 L53 17 L42 10 L32 14 Z',
+    shoes:'M12 34 L30 34 Q33 40 38 41 Q44 42 44 46 L12 46 Z',
+    acc:'M32 16 a16 16 0 1 0 0.01 0 M32 26 a6 6 0 1 0 0.01 0'};
+  return `<svg viewBox="0 0 64 64"><path d="${p[type]||p.top}" fill="#cccccc" stroke="#8c8c8c" stroke-width="1.5" stroke-linejoin="round"/></svg>`;
+}
+const CAT2T={上衣:'top',下身:'bottom',外套:'outer',洋裝:'dress',鞋:'shoes',配件:'acc'};
+const CATS=['上衣','下身','外套','洋裝','鞋','配件'];
+const SEASONS=['四季','春夏','春秋','秋冬'];
+const COLOR={白:'金',灰:'金',金:'金',綠:'木',藍:'水',黑:'水',紅:'火',紫:'火',卡其:'土',米:'土',棕:'土'};
+const COLORS=Object.keys(COLOR);
+const WX=['金','木','水','火','土'];
+
+/* 衣櫥既有單品（背景示意） */
+const closetItems=[['白棉 T 恤','top'],['海軍藍襯衫','top'],['黑色西裝褲','bottom'],['卡其長褲','bottom'],['米色風衣','outer'],['墨綠洋裝','dress'],['白色運動鞋','shoes'],['黑色短靴','shoes'],['金色耳環','acc']];
+
+/* ---------- mock：AI 辨識結果（含照片上的定位點 x/y %） ---------- */
+const DETECT=[
+  {name:'網紗長袖上衣',cat:'上衣',color:'白',brand:'',season:'春夏',price:'', x:50,y:32},
+  {name:'深藍直筒丹寧褲',cat:'下身',color:'藍',brand:'',season:'四季',price:'', x:50,y:60},
+  {name:'白色球鞋',cat:'鞋',color:'白',brand:'',season:'四季',price:'', x:50,y:84}];
+const LINK_FETCH={name:'復古丹寧外套',cat:'外套',color:'藍',brand:'UNIQLO',season:'春秋',price:'1290'};
+
+/* ---------- state ---------- */
+let detected=[], editIdx=null, editFrom='result', form=null, currentSheet='none', donePayload=[];
+
+/* ---------- layer helpers ---------- */
+function setFull(name){ ['camera','analyzing','result'].forEach(n=>document.getElementById(n).classList.toggle('on',n===name)); }
+function openSheet(view){ currentSheet=view; renderSheet(view); document.getElementById('backdrop').classList.add('on'); document.getElementById('sheet').classList.add('on'); }
+function closeSheet(){ currentSheet='none'; document.getElementById('backdrop').classList.remove('on'); document.getElementById('sheet').classList.remove('on'); }
+function dismissSheet(){ if(currentSheet==='edit') closeSheet(); /* result 仍在底下 → 回到辨識結果 */ else closeSheet(); }
+
+/* ---------- flow ---------- */
+function openAdd(){ setFull(null); openSheet('method'); }
+function chooseCamera(){ closeSheet(); setFull('camera'); }
+function chooseLink(){ openSheet('link'); }
+function capture(){ setFull('analyzing'); setTimeout(()=>{ detected=DETECT.map(o=>({...o})); setFull('result'); renderResult(); },1500); }
+
+function editItem(i){ editIdx=i; editFrom='result'; form={...detected[i]}; openSheet('edit'); }
+function removeItem(i){ detected.splice(i,1); if(!detected.length){ toast('已全部移除，重拍一張'); setFull('camera'); } else renderResult(); }
+function addAll(){ donePayload=detected.map(o=>({...o})); setFull(null); openSheet('done'); }
+
+function resolveLink(){ openSheet('fetching'); setTimeout(()=>{ editIdx=null; editFrom='link'; form={...LINK_FETCH}; openSheet('edit'); },1400); }
+
+function saveEdit(){
+  form.name=val('f_name')||'未命名衣物'; form.brand=val('f_brand'); form.cat=val('f_cat');
+  form.color=val('f_color'); form.season=val('f_season'); form.price=val('f_price');
+  if(editFrom==='result'){ detected[editIdx]={...form}; renderResult(); closeSheet(); toast('已儲存'); }
+  else { donePayload=[{...form}]; setFull(null); openSheet('done'); }
+}
+function resetAll(){ detected=[];editIdx=null;form=null; setFull(null); closeSheet(); renderCloset(); }
+
+/* ---------- render: closet ---------- */
+function renderCloset(){
+  document.getElementById('cgrid').innerHTML=closetItems.map(([n,t])=>
+    `<div class="citem"><div class="thumb">${garment(t)}</div><div class="cn">${n}</div></div>`).join('');
+}
+
+/* ---------- render: result (照片 + 定位點 + 清單) ---------- */
+function renderResult(){
+  const dots=detected.map((it,i)=>`
+    <button class="hotspot" style="left:${it.x}%;top:${it.y}%" onclick="editItem(${i})">
+      <span class="dot">${i+1}</span><span class="dlabel">${it.cat}</span>
+    </button>`).join('');
+  const rows=detected.map((it,i)=>`
+    <div class="drow" style="animation-delay:${i*.08}s">
+      <span class="num">${i+1}</span>
+      <div class="thumb">${garment(CAT2T[it.cat])}</div>
+      <div class="info"><b>${it.name}</b><p>${it.cat} · ${it.color}色 · 五行${COLOR[it.color]}</p></div>
+      <span class="ed" onclick="editItem(${i})">編輯</span>
+      <span class="rm" onclick="removeItem(${i})">✕</span>
+    </div>`).join('');
+  document.getElementById('result').innerHTML=`
+    <div class="res-photo">
+      <div class="res-top">
+        <button onclick="setFull('camera')">‹ 重拍</button>
+        <button class="x" onclick="resetAll()">✕</button>
+      </div>
+      <div class="reshint">這是你拍的照片，圓點是 AI 辨識到的單品</div>
+      <div class="figure"><svg viewBox="0 0 120 270">
+        <circle cx="60" cy="32" r="20" fill="#aeaeae"/>
+        <rect x="32" y="56" width="56" height="82" rx="20" fill="#b8b8b8"/>
+        <rect x="40" y="132" width="40" height="98" rx="13" fill="#a6a6a6"/>
+        <rect x="41" y="226" width="17" height="20" rx="5" fill="#bcbcbc"/>
+        <rect x="62" y="226" width="17" height="20" rx="5" fill="#bcbcbc"/>
+      </svg></div>
+      ${dots}
+    </div>
+    <div class="res-panel">
+      <div class="handle"></div>
+      <div class="res-title">辨識到 ${detected.length} 件單品</div>
+      <div class="res-sub">點照片上的圓點或下方任一件可編輯；確認後一起加入衣櫥</div>
+      ${rows}
+      <button class="res-cta" onclick="addAll()">全部加入衣櫥（${detected.length} 件）</button>
+    </div>`;
+}
+
+/* ---------- render: sheet ---------- */
+function renderSheet(view){
+  const s=document.getElementById('sheet');
+  if(view==='method'){
+    s.innerHTML=`
+      <div class="sheet-head"><button class="bk" onclick="closeSheet()">取消</button><h3>新增衣物</h3><span class="sp"></span></div>
+      <button class="opt" onclick="chooseCamera()">
+        <div class="oic"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M4 8h3l1.6-2.2h6.8L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.4"/></svg></div>
+        <div class="t"><b>拍照新增</b><p>拍整套或單件，AI 自動判斷並辨識</p></div></button>
+      <button class="opt" onclick="chooseLink()">
+        <div class="oic"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M9 15l6-6M8 13l-2 2a3.5 3.5 0 0 0 5 5l2-2M16 11l2-2a3.5 3.5 0 0 0-5-5l-2 2"/></svg></div>
+        <div class="t"><b>貼上商品連結</b><p>貼購物網址，自動抓品牌、品名與價格</p></div></button>`;
+  }
+  else if(view==='link'){
+    s.innerHTML=`
+      <div class="sheet-head"><button class="bk" onclick="openSheet('method')">‹</button><h3>貼商品連結</h3><span class="sp"></span></div>
+      <div class="field"><label>商品網址</label><input id="urlInput" placeholder="https://" value="https://www.uniqlo.com/tw/..."></div>
+      <button class="sheet-cta" onclick="resolveLink()">解析連結</button>`;
+  }
+  else if(view==='fetching'){
+    s.innerHTML=`<div style="text-align:center;padding:30px 0 20px"><div class="spin" style="border-color:#ddd;border-top-color:#141414"></div><p style="font-size:14px;font-weight:500">抓取商品資訊…</p><span style="font-size:11.5px;color:var(--soft);display:block;margin-top:6px">讀取品牌、品名與價格</span></div>`;
+  }
+  else if(view==='edit'){ s.innerHTML=editHTML(); wireEdit(); }
+  else if(view==='done'){
+    s.innerHTML=`<div class="done">
+      <div class="ring"><svg viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="2.2"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+      <h3>已加入衣櫥</h3><p>${donePayload.length} 件已收進你的衣櫥<br>之後穿到時記錄一下，會自動算 CPW</p>
+      <div class="row">${donePayload.map((it,i)=>`<div class="ai" style="animation:rise .35s ease backwards;animation-delay:${i*.08}s">${garment(CAT2T[it.cat])}</div>`).join('')}</div>
+      <button class="sheet-cta" onclick="resetAll()">回衣櫥</button></div>`;
+  }
+}
+
+function editHTML(){
+  const wx=COLOR[form.color];
+  return `
+    <div class="sheet-head"><button class="bk" onclick="dismissSheet()">‹ 返回</button><h3>編輯衣物</h3><span class="sp"></span></div>
+    <div class="preview" id="prev">${garment(CAT2T[form.cat])}</div>
+    <div class="field"><label>命名</label><input id="f_name" value="${form.name}"></div>
+    <div class="field"><label>品牌 <span class="auto">${editFrom==='link'?'已帶入':'選填'}</span></label><input id="f_brand" placeholder="未填" value="${form.brand}"></div>
+    <div class="field"><label>分類 <span class="auto">分析帶入</span></label>
+      <select id="f_cat">${CATS.map(x=>`<option ${x===form.cat?'selected':''}>${x}</option>`).join('')}</select></div>
+    <div class="twocol">
+      <div class="field"><label>顏色 <span class="auto">主色</span></label>
+        <select id="f_color">${COLORS.map(x=>`<option ${x===form.color?'selected':''}>${x}</option>`).join('')}</select></div>
+      <div class="field"><label>五行 <span class="auto">由顏色推</span></label>
+        <select id="f_wx">${WX.map(x=>`<option ${x===wx?'selected':''}>${x}</option>`).join('')}</select></div>
+    </div>
+    <div class="infoline" id="infoline">主色 ${form.color}　·　五行 ${wx}（顏色改了會自動更新）</div>
+    <div class="twocol">
+      <div class="field"><label>季節</label><select id="f_season">${SEASONS.map(x=>`<option ${x===form.season?'selected':''}>${x}</option>`).join('')}</select></div>
+      <div class="field"><label>價格 <span class="auto">算 CPW 用</span></label><input id="f_price" inputmode="numeric" placeholder="選填" value="${form.price}"></div>
+    </div>
+    <button class="sheet-cta" onclick="saveEdit()">${editFrom==='result'?'儲存這件':'確認，加入衣櫥'}</button>`;
+}
+function wireEdit(){
+  document.getElementById('f_color').addEventListener('change',e=>{
+    const wx=COLOR[e.target.value];
+    document.getElementById('f_wx').value=wx;
+    document.getElementById('infoline').textContent=`主色 ${e.target.value}　·　五行 ${wx}（顏色改了會自動更新）`;
+  });
+  document.getElementById('f_cat').addEventListener('change',e=>{
+    document.getElementById('prev').innerHTML=garment(CAT2T[e.target.value]);
+  });
+}
+const val=id=>{const el=document.getElementById(id);return el?el.value.trim():'';};
+
+let tt;function toast(m){const e=document.getElementById('toastEl');e.textContent=m;e.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('on'),2300);}
+
+renderCloset();
+</script>
+</body>
+</html>
