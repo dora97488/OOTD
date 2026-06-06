@@ -6,29 +6,32 @@ import { computeBazi } from '../engines/wuxing';
 import { type AstroResult } from '../engines/astro';
 import { CITIES } from '../constants/cities';
 import { WUXING_HEX } from '../constants/colors';
+import { hourToShichen } from '../engines/shichen';
 
 export default function Onboarding() {
   const nav = useNavigate();
+  const [nickname, setNickname] = useState('');
   const [birthDate, setBirthDate] = useState('');
-  const [hour, setHour] = useState<string>('');
-  const [minute, setMinute] = useState<string>('');
+  const [time, setTime] = useState<string>(''); // "HH:MM"，空＝不確定
   const [placeName, setPlaceName] = useState<string>('');
   const [result, setResult] = useState<ReturnType<typeof computeBazi> | null>(null);
   const [astro, setAstro] = useState<AstroResult | null>(null);
 
   const calc = async () => {
     if (!birthDate) return;
-    setResult(computeBazi(birthDate, hour === '' ? undefined : Number(hour)));
-    // 星盤：時辰＋出生地都齊才算（需經緯度才有上升星座）。astro 引擎較重 → 延遲載入。
+    const h = time ? Number(time.split(':')[0]) : undefined;
+    const m = time ? Number(time.split(':')[1]) : 0;
+    setResult(computeBazi(birthDate, h));
+    // 星盤：時間＋出生地都齊才算（需經緯度才有上升星座）。astro 引擎較重 → 延遲載入。
     const place = CITIES.find((c) => c.name === placeName);
-    if (hour !== '' && place) {
+    if (h != null && place) {
       try {
         const { computeNatalChart } = await import('../engines/astro');
         setAstro(
           computeNatalChart({
             date: birthDate,
-            hour: Number(hour),
-            minute: minute === '' ? 0 : Number(minute),
+            hour: h,
+            minute: m,
             lat: place.lat,
             lng: place.lng,
           })
@@ -45,17 +48,22 @@ export default function Onboarding() {
   const finish = async () => {
     if (!result || !birthDate) return;
     const place = CITIES.find((c) => c.name === placeName);
+    const h = time ? Number(time.split(':')[0]) : undefined;
+    const m = time ? Number(time.split(':')[1]) : 0;
     await saveProfile({
-      mode: 'bazi',
+      nickname: nickname.trim() || undefined,
+      mode: 'hybrid', // 預設「混合」(分層)，對齊產品設計
       birthDate,
-      birthHour: hour === '' ? undefined : Number(hour),
-      birthMinute: minute === '' ? undefined : Number(minute),
+      birthHour: h,
+      birthMinute: time ? m : undefined,
       birthPlace: place,
       astro: astro ?? undefined,
       dayMasterWuxing: result.dayMasterWuxing,
       wuxingCount: result.wuxingCount,
       favorable: result.favorable,
       unfavorable: result.unfavorable,
+      notifyMorning: true, // 預設開啟（先做皮；實際排程待 Phase 1）
+      notifyEvening: true,
       createdAt: Date.now(),
     });
     // TODO(onboarding 負責人)：第④步「推播授權」可呼叫 platform/capabilities 的 requestNotificationPermission()
@@ -70,7 +78,17 @@ export default function Onboarding() {
       <h1 className="mt-10 font-serif text-2xl text-ink">先算你的五行</h1>
       <p className="mt-1 text-sm text-muted">輸入生辰，我們會算出你的喜用五行，用來推薦開運穿搭。</p>
 
-      <label className="mt-6 block text-sm text-ink">出生日期</label>
+      <label className="mt-6 block text-sm text-ink">暱稱（可略）</label>
+      <input
+        type="text"
+        value={nickname}
+        maxLength={20}
+        onChange={(e) => setNickname(e.target.value)}
+        placeholder="想怎麼稱呼你？"
+        className="mt-1 w-full rounded-xl border border-line bg-card px-4 py-3 text-ink"
+      />
+
+      <label className="mt-4 block text-sm text-ink">出生日期</label>
       <input
         type="date"
         value={birthDate}
@@ -78,29 +96,20 @@ export default function Onboarding() {
         className="mt-1 w-full rounded-xl border border-line bg-card px-4 py-3 text-ink"
       />
 
-      <label className="mt-4 block text-sm text-ink">出生時辰（可略）</label>
-      <select
-        value={hour}
-        onChange={(e) => setHour(e.target.value)}
-        className="mt-1 w-full rounded-xl border border-line bg-card px-4 py-3 text-ink"
-      >
-        <option value="">不確定</option>
-        {Array.from({ length: 24 }, (_, h) => (
-          <option key={h} value={h}>{`${h}:00`}</option>
-        ))}
-      </select>
-
-      <label className="mt-4 block text-sm text-ink">出生分鐘（可略，預設 0）</label>
-      <input
-        type="number"
-        min={0}
-        max={59}
-        inputMode="numeric"
-        value={minute}
-        onChange={(e) => setMinute(e.target.value)}
-        placeholder="0"
-        className="mt-1 w-full rounded-xl border border-line bg-card px-4 py-3 text-ink"
-      />
+      <label className="mt-4 block text-sm text-ink">出生時間（可略，留空＝不確定）</label>
+      <div className="mt-1 flex items-center gap-2">
+        <input
+          type="time"
+          value={time}
+          onChange={(e) => setTime(e.target.value)}
+          className="flex-1 rounded-xl border border-line bg-card px-4 py-3 text-ink"
+        />
+        {time && (
+          <span className="shrink-0 rounded-xl border border-line bg-card px-3 py-3 text-sm text-muted">
+            {hourToShichen(Number(time.split(':')[0]))}
+          </span>
+        )}
+      </div>
 
       <label className="mt-4 block text-sm text-ink">出生地點（可略，用來解鎖星盤）</label>
       <select
