@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ---------------------------------------------------------------
+   OOTD 設計 token —— Editorial Vibe（暖紙 + 襯線編輯感 + terracotta）。
+   完整規範見 docs/design-system.md；W3C token 原始檔見 docs/design-tokens.json。
+   請各功能負責人用 Tailwind 語意 class（bg-paper / text-ink / bg-terracotta…），不要硬寫色碼。
+---------------------------------------------------------------- */
+:root {
+  /* 背景 / 表面（暖紙感） */
+  --paper: #F7F6F2;        /* 主背景：暖紙白 */
+  --canvas: #F1F0EC;       /* 構圖/卡片後的柔灰底 */
+  --bg-muted: #E8E6E1;     /* 低對比區塊 */
+  --card: #FFFFFF;         /* 白卡表面 */
+  --surface-soft: #FBFAF7; /* 編輯式面板微暖白 */
+
+  /* 文字 */
+  --ink: #1E1E1C;          /* 主文字（近黑） */
+  --muted: #6F6B64;        /* 次要文字 */
+  --faint: #B7B4AD;        /* 極淡標籤 / 導覽 / metadata */
+  --inverse: #FFFFFF;      /* terracotta 按鈕上的字 */
+
+  /* 邊框 */
+  --line: #ECE9E3;         /* 幾乎隱形的卡片分隔線 */
+  --line-soft: #DEDAD2;    /* 稍明顯的分隔 / 外框 */
+
+  /* 主行動色（terracotta，少量使用，僅最重要的動作） */
+  --terracotta: #A94D28;
+  --terracotta-dark: #8F3E20; /* 按下 / active */
+  --seal: #A94D28;            /* 向後相容舊名（= terracotta） */
+
+  /* 編輯式點綴色（少量點綴用） */
+  --tomato: #D84A2B;
+  --leaf: #8FA66B;
+  --cream: #EFE7C9;
+  --navy: #202638;
+  --gold: #C5A24B;
+
+  /* 五行功能色（顯示 swatch；已和諧上方點綴色。OOTD 特有，不在原 token 表內） */
+  --wood: #8FA66B;   /* 木 → 葉綠 */
+  --fire: #D84A2B;   /* 火 → 番茄紅 */
+  --earth: #C5A24B;  /* 土 → 金 */
+  --metal: #A8A29A;  /* 金 → 暖銀灰 */
+  --water: #202638;  /* 水 → 深藍 */
+
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+* { -webkit-tap-highlight-color: transparent; }
+
+html, body, #root { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Inter", "Noto Sans TC", "PingFang TC", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+}
+
+/* 共用小元件樣式 */
+.chip {
+  display: inline-flex; align-items: center; gap: .25rem;
+  font-size: .72rem; line-height: 1; padding: .28rem .5rem;
+  border-radius: 999px; border: 1px solid var(--line);
+  background: var(--card); color: var(--muted);
+}
+.wuxing-dot { width: .5rem; height: .5rem; border-radius: 999px; display: inline-block; }
