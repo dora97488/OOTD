@@ -59,7 +59,7 @@ export default function Profile() {
 
   return (
     <div>
-      <PageHeader title="我的" />
+      <PageHeader en="Profile" title="我的" sub="命盤 · 五行喜忌 · 穿著統計" />
       <div className="px-5">
         {/* 基本資料：頭像 / 暱稱 / 出生年·喜用神·星座 / 五行分布條 */}
         {profile && (

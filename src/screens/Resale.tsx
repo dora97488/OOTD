@@ -16,7 +16,7 @@ import {
   listWearLogs,
 } from '../data';
 import type { Item, Listing, WuXing } from '../db/db';
-import type { MarketListing } from '../data/market';
+import { type MarketListing, marketImageURL } from '../data/market';
 import { suggestResale, cpw, wuxingFit, recentWearCounts } from '../engines/recommend';
 import { WUXING_HEX } from '../constants/colors';
 import PageHeader from '../components/PageHeader';
@@ -45,7 +45,7 @@ export default function Resale() {
 
   return (
     <div>
-      <PageHeader title="幫衣服找下個主人" sub="90 天沒穿 / CPW 偏高的單品" />
+      <PageHeader en="Resale" title="幫衣服找下個主人" sub="90 天沒穿 / CPW 偏高的單品 · 二手轉售" />
 
       <div className="space-y-6 px-5">
         <HowItWorks />
@@ -86,14 +86,12 @@ export default function Resale() {
 
         {/* 市集探索（mock 皮） */}
         <section>
-          <SectionTitle badge="先做皮">逛逛別人的衣櫥</SectionTitle>
+          <SectionTitle>逛逛別人的衣櫥</SectionTitle>
           <div className="grid grid-cols-2 gap-3">
             {market.map((m) => (
               <MarketCard
                 key={m.id}
                 listing={m}
-                fit={profile ? wuxingFit(m.wuxing, fav, unfav) : 0}
-                showFit={!!profile}
                 onClick={() => setMarketTarget(m)}
               />
             ))}
@@ -224,26 +222,19 @@ function MyListingRow({ listing, item }: { listing: Listing; item?: Item }) {
 // ── 市集卡 ────────────────────────────────────────────────
 function MarketCard({
   listing,
-  fit,
-  showFit,
   onClick,
 }: {
   listing: MarketListing;
-  fit: number;
-  showFit: boolean;
   onClick: () => void;
 }) {
+  const img = marketImageURL(listing.image);
   return (
     <button onClick={onClick} className="overflow-hidden rounded-card border border-line bg-card text-left shadow-card">
-      <div className="relative grid aspect-square place-items-center bg-paper text-5xl">
-        <span>{listing.emoji}</span>
-        {showFit && fit >= 2 && (
-          <span
-            className="chip absolute right-2 top-2"
-            style={{ color: WUXING_HEX[listing.wuxing], borderColor: WUXING_HEX[listing.wuxing] }}
-          >
-            很搭你
-          </span>
+      <div className="relative aspect-square bg-paper">
+        {img ? (
+          <img src={img} alt={listing.name} className="h-full w-full object-contain" />
+        ) : (
+          <div className="grid h-full w-full place-items-center text-5xl">{listing.emoji}</div>
         )}
       </div>
       <div className="p-3">
@@ -348,11 +339,16 @@ function MarketDetail({
   onChat: () => void;
 }) {
   const fit = wuxingFit(listing.wuxing, fav, unfav);
-  const fitLabel = fit >= 2 ? `很搭你的${listing.wuxing}` : fit < 0 ? '五行偏忌' : '中性';
+  const fitLabel = fit >= 2 ? `${listing.wuxing}（喜用）` : fit < 0 ? '五行偏忌' : '中性';
+  const img = marketImageURL(listing.image);
   return (
     <div>
-      <div className="grid aspect-[4/3] place-items-center rounded-2xl border border-line bg-paper text-7xl">
-        {listing.emoji}
+      <div className="aspect-[4/3] overflow-hidden rounded-2xl border border-line bg-paper">
+        {img ? (
+          <img src={img} alt={listing.name} className="h-full w-full object-cover" />
+        ) : (
+          <div className="grid h-full w-full place-items-center text-7xl">{listing.emoji}</div>
+        )}
       </div>
       <div className="mt-4 font-serif text-3xl text-seal">NT$ {listing.price}</div>
       <div className="mt-1 text-sm text-muted">

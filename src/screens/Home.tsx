@@ -262,6 +262,58 @@ function WeatherBar({ weather }: { weather?: WeatherInfo }) {
   );
 }
 
+// ── 今日推薦「一律只推去背單品」──────────────────────────────
+// 用圖片透明通道判定是否已去背；結果以 imageId 快取，避免每次 render 重複解碼。
+// 沒有任何去背單品時，SuggestionCollage 會自動退回內建去背示意拼貼。
+const cutoutCache = new Map<string, Promise<boolean>>();
+function imageIsCutout(imageId?: string): Promise<boolean> {
+  if (!imageId) return Promise.resolve(false);
+  let p = cutoutCache.get(imageId);
+  if (!p) {
+    p = (async () => {
+      try {
+        const blob = await getImageBlob(imageId);
+        if (!blob) return false;
+        const bmp = await createImageBitmap(blob);
+        const w = Math.min(bmp.width, 64);
+        const h = Math.min(bmp.height, 64);
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
+        ctx.drawImage(bmp, 0, 0, w, h);
+        bmp.close?.();
+        const data = ctx.getImageData(0, 0, w, h).data;
+        let transparent = 0;
+        for (let i = 3; i < data.length; i += 4) if (data[i] < 200) transparent++;
+        return transparent > w * h * 0.04; // 去背圖邊角會有大量透明像素
+      } catch {
+        return false; // 判定不出來就不推（寧缺勿濫，確保推薦都是乾淨去背圖）
+      }
+    })();
+    cutoutCache.set(imageId, p);
+  }
+  return p;
+}
+
+// 只回傳「已去背」的單品（透明判定為非同步，解析完成前先回空集，交由示意拼貼墊檔）。
+function useCutoutItems(items: Item[]): Item[] {
+  const [okIds, setOkIds] = useState<Set<string>>(new Set());
+  const key = items.map((i) => i.imageId).join(',');
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      const flags = await Promise.all(items.map((it) => imageIsCutout(it.imageId)));
+      if (!alive) return;
+      const s = new Set<string>();
+      items.forEach((it, i) => { if (flags[i]) s.add(it.id); });
+      setOkIds(s);
+    })();
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
+  return useMemo(() => items.filter((it) => okIds.has(it.id)), [items, okIds]);
+}
+
 // ════════════════════════════════════════════════════
 // 建議模式
 // ════════════════════════════════════════════════════
@@ -273,8 +325,10 @@ function SuggestMode({
   luckyWuxing: WuXing[];
   weather?: WeatherInfo;
 }) {
-  const suggestion = recommendOutfit(items, luckyWuxing, profile?.favorable ?? [], profile?.unfavorable ?? [], undefined, weather);
-  const heroItems = (suggestion.length > 0 ? suggestion : items).slice(0, 3);
+  // 今日推薦一律只從「去背單品」挑（確保拼貼都是乾淨去背圖）。
+  const cutoutItems = useCutoutItems(items);
+  const suggestion = recommendOutfit(cutoutItems, luckyWuxing, profile?.favorable ?? [], profile?.unfavorable ?? [], undefined, weather);
+  const heroItems = (suggestion.length > 0 ? suggestion : cutoutItems).slice(0, 3);
 
   // mock 先直接顯示建議拼貼；正式流程再改回需點擊生成。
   const [generated, setGenerated] = useState(true);

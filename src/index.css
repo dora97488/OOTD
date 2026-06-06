@@ -7,6 +7,49 @@
   background:
     radial-gradient(circle at top, #ffffff 0%, #f5f2ed 42%, #ebe7e1 100%);
   font-family: "Helvetica Neue", "Arial", sans-serif;
+
+  /* ── Editorial 設計 token（合併時被覆蓋，補回；Tailwind 經 var() 取用）─────────
+     bg-paper / bg-card / text-ink / text-muted / text-faint / border-line /
+     bg-seal(=terracotta) / 五行色 text-wood/fire/earth/metal/water 全靠這些變數。
+     完整規範見 docs/design-system.md。改這裡屬共用 token，請與基礎建設負責人協調。 */
+  /* 背景 / 表面（暖紙感） */
+  --paper: #F7F6F2;        /* 主背景：暖紙白 */
+  --canvas: #F1F0EC;       /* 構圖/卡片後的柔灰底 */
+  --bg-muted: #E8E6E1;     /* 低對比區塊 */
+  --card: #FFFFFF;         /* 白卡表面 */
+  --surface-soft: #FBFAF7; /* 編輯式面板微暖白 */
+
+  /* 文字 */
+  --ink: #1E1E1C;          /* 主文字（近黑） */
+  --muted: #6F6B64;        /* 次要文字 */
+  --faint: #B7B4AD;        /* 極淡標籤 / 導覽 / metadata */
+  --inverse: #FFFFFF;      /* terracotta 按鈕上的字 */
+
+  /* 邊框 */
+  --line: #ECE9E3;         /* 幾乎隱形的卡片分隔線 */
+  --line-soft: #DEDAD2;    /* 稍明顯的分隔 / 外框 */
+
+  /* 主行動色（terracotta，少量使用，僅最重要的動作） */
+  --terracotta: #A94D28;
+  --terracotta-dark: #8F3E20; /* 按下 / active */
+  --seal: #A94D28;            /* 向後相容舊名（= terracotta） */
+
+  /* 編輯式點綴色（少量點綴用） */
+  --tomato: #D84A2B;
+  --leaf: #8FA66B;
+  --cream: #EFE7C9;
+  --navy: #202638;
+  --gold: #C5A24B;
+
+  /* 五行功能色（顯示 swatch） */
+  --wood: #8FA66B;   /* 木 → 葉綠 */
+  --fire: #D84A2B;   /* 火 → 番茄紅 */
+  --earth: #C5A24B;  /* 土 → 金 */
+  --metal: #A8A29A;  /* 金 → 暖銀灰 */
+  --water: #202638;  /* 水 → 深藍 */
+
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 * {
@@ -426,10 +469,12 @@ button {
 }
 
 .bottom-nav {
-  position: absolute;
-  right: 12px;
-  bottom: 12px;
-  left: 12px;
+  position: fixed;
+  left: 50%;
+  bottom: calc(12px + var(--safe-bottom, 0px));
+  transform: translateX(-50%);
+  width: min(100% - 24px, 424px);
+  z-index: 30;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 4px;
@@ -452,6 +497,8 @@ button {
   color: #a7a09a;
   background: transparent;
   font-size: 11px;
+  text-decoration: none;
+  cursor: pointer;
 }
 
 .nav-icon {
