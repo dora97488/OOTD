@@ -4,6 +4,21 @@ import { getProfile, countItems, exportAll, importAll } from '../data';
 import PageHeader from '../components/PageHeader';
 import { WUXING_HEX } from '../constants/colors';
 
+const SIGN_ZH: Record<string, string> = {
+  Aries: '牡羊座', Taurus: '金牛座', Gemini: '雙子座', Cancer: '巨蟹座',
+  Leo: '獅子座', Virgo: '處女座', Libra: '天秤座', Scorpio: '天蠍座',
+  Sagittarius: '射手座', Capricorn: '摩羯座', Aquarius: '水瓶座', Pisces: '雙魚座',
+};
+
+function AstroCell({ label, sign }: { label: string; sign: string }) {
+  return (
+    <div className="rounded-xl border border-line bg-paper py-2">
+      <div className="text-xs text-muted">{label}</div>
+      <div className="font-serif text-base text-ink">{SIGN_ZH[sign] ?? sign ?? '—'}</div>
+    </div>
+  );
+}
+
 export default function Profile() {
   const profile = useLiveQuery(() => getProfile());
   const itemCount = useLiveQuery(() => countItems(), [], 0);
@@ -25,6 +40,28 @@ export default function Profile() {
               喜用 {profile.favorable.join('、')}｜忌 {profile.unfavorable.join('、')}
             </div>
             <div className="mt-1 text-xs text-muted">衣櫥共 {itemCount} 件</div>
+          </div>
+        )}
+
+        {/* 星盤（占卜層）—— 與上方五行（穿搭層）並列，兩套不同系統 */}
+        {profile && (
+          <div className="mt-3 rounded-2xl border border-line bg-card p-5 shadow-card">
+            <div className="text-sm text-muted">星盤（占卜）</div>
+            {profile.astro ? (
+              <>
+                <div className="mt-2 grid grid-cols-3 gap-2 text-center">
+                  <AstroCell label="太陽" sign={profile.astro.sunSign} />
+                  <AstroCell label="月亮" sign={profile.astro.moonSign} />
+                  <AstroCell label="上升" sign={profile.astro.risingSign} />
+                </div>
+                <div className="mt-2 text-xs text-muted">西洋元素：{profile.astro.westernElement}</div>
+                <p className="mt-2 text-xs text-muted">＊占卜層，僅供參考；與穿搭用的五行是兩套不同系統。</p>
+              </>
+            ) : (
+              <p className="mt-2 text-sm text-muted">
+                補上「出生時間＋地點」即可解鎖星盤（重做 onboarding，或之後在設定補資料）。
+              </p>
+            )}
           </div>
         )}
 
