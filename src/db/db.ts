@@ -50,7 +50,9 @@ export interface BirthPlace { name: string; lat: number; lng: number; }
 
 export interface Profile {
   id: string;               // 固定為 'me'
-  mode: 'bazi' | 'astro';
+  nickname?: string;        // 暱稱（個人檔案顯示；選填）
+  avatarImageId?: string;   // 頭像 → images 表（選填；空則用暱稱首字 fallback）
+  mode: 'bazi' | 'astro' | 'hybrid'; // 占卜原理偏好：五行 / 占星 / 混合（分層）
   birthDate: string;        // YYYY-MM-DD
   birthHour?: number;       // 0-23
   birthMinute?: number;     // 0-59（搭配 birthHour，星盤用）
@@ -62,6 +64,8 @@ export interface Profile {
   birthPlace?: BirthPlace;  // 出生地（星盤需要；缺則只有五行）
   astro?: AstroResult;      // 星盤結果（時辰＋地點齊全才有）
   weatherCity?: string;     // 天氣偏好縣市（手動覆寫；空＝用 GPS 自動定位）
+  notifyMorning?: boolean;  // 每日開運推播 07:30（先做皮：實際排程待 Phase 1）
+  notifyEvening?: boolean;  // 記得記錄今日穿搭 21:00
   createdAt: number;
 }
 
