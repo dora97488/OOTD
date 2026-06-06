@@ -1,22 +1,25 @@
 // =============================================================
-// 天氣引擎 —— 中央氣象署(CWA)開放資料 F-C0032-001（今明 36 小時縣市預報）。
-// 純前端直接呼叫；需免費 API key（放 .env.local 的 VITE_CWA_API_KEY，見 .env.local.example）。
-// 沒 key 或呼叫失敗 → 回佔位資料，App 照常渲染（不卡首頁）。
-// WeatherInfo 介面固定（CLAUDE.md 慣例），各頁只依賴它。
-// TODO(天氣負責人)：feelsLike 目前以平均溫近似；要真體感可改接鄉鎮預報(F-D0047-xxx，含 AT)；海外可加 OpenWeather。
+// 天氣引擎 —— 中央氣象署(CWA)開放資料 F-D0047-091（未來1週「縣市」預報）。
+// 一支 API 一次拿：平均溫度、真實體感溫度(AT)、紫外線指數(UVI)、12小時降雨機率、天氣現象、綜合描述。
+// 縣市為 key（與 GPS→nearestCity 對應）；純前端直接呼叫（CORS 已確認 *）。
+// 需免費 API key（.env.local 的 VITE_CWA_API_KEY，見 .env.local.example）；沒 key/失敗 → 回佔位資料。
+// WeatherInfo 只增不改（新增欄位皆 optional），各頁照舊可用。
 // =============================================================
 
 export interface WeatherInfo {
   tempC: number;
-  feelsLikeC: number;
+  feelsLikeC: number;       // 真實體感溫度（AT；當日最高/最低體感平均）
   rainProbPct: number;
-  desc: string;
+  desc: string;             // 天氣現象（如「陰短暫陣雨」）
+  uvIndex?: number;         // 紫外線指數
+  uvLevel?: string;         // 曝曬等級（低量級/中量級/高量級/過量級/危險級）
+  description?: string;     // 天氣預報綜合描述（完整句子）
 }
 
 // 定位屬「平台能力」，實作收斂在 platform/capabilities.ts；此處 re-export 維持既有匯入路徑。
 export { getCoords } from '../platform/capabilities';
 
-// CWA F-C0032-001 的 locationName 必須是「縣市」名稱（用「臺」非「台」）。座標為各縣市概略中心點。
+// CWA locationName 必須是「縣市」名稱（用「臺」非「台」）。座標為各縣市概略中心點。
 export const TW_CITIES: { name: string; lat: number; lng: number }[] = [
   { name: '臺北市', lat: 25.04, lng: 121.56 },
   { name: '新北市', lat: 25.01, lng: 121.46 },
@@ -60,7 +63,8 @@ export function nearestCity(lat: number, lng: number): string {
 }
 
 const CWA_KEY = import.meta.env.VITE_CWA_API_KEY as string | undefined;
-const CWA_ENDPOINT = 'https://opendata.cwa.gov.tw/api/v1/rest/datastore/F-C0032-001';
+const CWA_ENDPOINT = 'https://opendata.cwa.gov.tw/api/v1/rest/datastore/F-D0047-091';
+const ELEMENTS = '平均溫度,最高體感溫度,最低體感溫度,紫外線指數,12小時降雨機率,天氣現象,天氣預報綜合描述';
 const FALLBACK: WeatherInfo = { tempC: 24, feelsLikeC: 25, rainProbPct: 20, desc: '晴時多雲' };
 
 /** 查某縣市今日天氣。沒 key / 失敗 → 回佔位資料（不讓首頁卡住）。 */
@@ -72,7 +76,8 @@ export async function getWeatherByCity(city: string): Promise<WeatherInfo> {
   try {
     const url =
       `${CWA_ENDPOINT}?Authorization=${encodeURIComponent(CWA_KEY)}` +
-      `&locationName=${encodeURIComponent(city)}`;
+      `&LocationName=${encodeURIComponent(city)}` +
+      `&ElementName=${encodeURIComponent(ELEMENTS)}`;
     const res = await fetch(url);
     if (!res.ok) throw new Error(`CWA HTTP ${res.status}`);
     return parseCwa(await res.json());
@@ -88,22 +93,36 @@ export async function getCurrentWeather(lat?: number, lng?: number): Promise<Wea
   return getWeatherByCity(city);
 }
 
-// F-C0032-001 結構：records.location[0].weatherElement[]（各有 elementName 與 time[].parameter.parameterName）。
+// F-D0047-091 結構：records.Locations[0].Location[0].WeatherElement[]，
+// 每個 element 有 ElementName 與 Time[].ElementValue[]（value key 因 element 而異）。取 Time[0]＝今日。
 function parseCwa(json: any): WeatherInfo {
-  const loc = json?.records?.location?.[0];
-  const pick = (name: string): string | undefined =>
-    loc?.weatherElement?.find((el: any) => el.elementName === name)?.time?.[0]?.parameter?.parameterName;
+  const loc = json?.records?.Locations?.[0]?.Location?.[0];
+  const els: any[] = loc?.WeatherElement ?? [];
+  const val = (elementName: string, key: string): string | undefined =>
+    els.find((e) => e?.ElementName === elementName)?.Time?.[0]?.ElementValue?.[0]?.[key];
 
-  const wx = pick('Wx') ?? '—';
-  const pop = Number(pick('PoP'));
-  const minT = Number(pick('MinT'));
-  const maxT = Number(pick('MaxT'));
-  const avg = Number.isFinite(minT) && Number.isFinite(maxT) ? Math.round((minT + maxT) / 2) : NaN;
+  const temp = Number(val('平均溫度', 'Temperature'));
+  const maxAT = Number(val('最高體感溫度', 'MaxApparentTemperature'));
+  const minAT = Number(val('最低體感溫度', 'MinApparentTemperature'));
+  const at =
+    Number.isFinite(maxAT) && Number.isFinite(minAT)
+      ? Math.round((maxAT + minAT) / 2)
+      : Number.isFinite(maxAT)
+        ? maxAT
+        : NaN;
+  const pop = Number(val('12小時降雨機率', 'ProbabilityOfPrecipitation'));
+  const wx = val('天氣現象', 'Weather');
+  const uvi = Number(val('紫外線指數', 'UVIndex'));
+  const uvLevel = val('紫外線指數', 'UVExposureLevel');
+  const description = val('天氣預報綜合描述', 'WeatherDescription');
 
   return {
-    tempC: Number.isFinite(avg) ? avg : FALLBACK.tempC,
-    feelsLikeC: Number.isFinite(avg) ? avg : FALLBACK.feelsLikeC, // 縣市36hr無體感，先以平均溫近似
+    tempC: Number.isFinite(temp) ? temp : FALLBACK.tempC,
+    feelsLikeC: Number.isFinite(at) ? at : Number.isFinite(temp) ? temp : FALLBACK.feelsLikeC,
     rainProbPct: Number.isFinite(pop) ? pop : 0,
-    desc: wx,
+    desc: wx ?? '—',
+    uvIndex: Number.isFinite(uvi) ? uvi : undefined,
+    uvLevel: uvLevel || undefined,
+    description: description || undefined,
   };
 }

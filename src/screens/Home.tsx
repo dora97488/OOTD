@@ -41,7 +41,7 @@ export default function Home() {
   const lucky = almanac?.luckyWuxing ?? [];
   const fav = profile?.favorable ?? [];
   const unfav = profile?.unfavorable ?? [];
-  const suggestion = recommendOutfit(items, lucky, fav, unfav);
+  const suggestion = recommendOutfit(items, lucky, fav, unfav, undefined, weather);
 
   return (
     <div className="px-5 pt-6">
@@ -67,22 +67,32 @@ export default function Home() {
         </div>
       )}
 
-      {/* 天氣列（CWA 真資料；縣市 GPS 自動，可手動覆寫存 profile.weatherCity） */}
-      <div className="mt-3 flex items-center gap-3 rounded-2xl border border-line bg-card px-5 py-3 text-sm shadow-card">
-        <span className="font-serif text-xl text-ink">{weather ? `${weather.tempC}°` : '—'}</span>
-        <span className="text-muted">{weather?.desc ?? '—'}</span>
-        <span className="text-muted">降雨 {weather?.rainProbPct ?? '—'}%</span>
-        <select
-          value={city ?? ''}
-          onChange={(e) => updateProfile({ weatherCity: e.target.value })}
-          className="ml-auto rounded-lg border border-line bg-paper px-2 py-1 text-xs text-muted"
-          aria-label="選擇縣市"
-        >
-          {!city && <option value="">定位中…</option>}
-          {CITY_NAMES.map((c) => (
-            <option key={c} value={c}>{c}</option>
-          ))}
-        </select>
+      {/* 天氣列（CWA F-D0047-091 真資料：溫度/天氣/降雨/體感/UV；縣市 GPS 自動，可手動覆寫存 profile.weatherCity） */}
+      <div className="mt-3 rounded-2xl border border-line bg-card px-5 py-3 shadow-card">
+        <div className="flex items-center gap-3 text-sm">
+          <span className="font-serif text-xl text-ink">{weather ? `${weather.tempC}°` : '—'}</span>
+          <span className="text-muted">{weather?.desc ?? '—'}</span>
+          <span className="text-muted">降雨 {weather?.rainProbPct ?? '—'}%</span>
+          <select
+            value={city ?? ''}
+            onChange={(e) => updateProfile({ weatherCity: e.target.value })}
+            className="ml-auto rounded-lg border border-line bg-paper px-2 py-1 text-xs text-muted"
+            aria-label="選擇縣市"
+          >
+            {!city && <option value="">定位中…</option>}
+            {CITY_NAMES.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+        </div>
+        {weather && (
+          <div className="mt-1.5 flex items-center gap-3 text-xs text-muted">
+            <span>體感 {weather.feelsLikeC}°</span>
+            {weather.uvIndex != null && (
+              <span>UV {weather.uvIndex}{weather.uvLevel ? `・${weather.uvLevel}` : ''}</span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* 今日建議（用共用 recommend 引擎） */}
