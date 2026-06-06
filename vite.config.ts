@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
@@ -5,6 +6,15 @@ import { VitePWA } from 'vite-plugin-pwa';
 // base: './' 讓打包後可放在 GitHub Pages 子路徑；搭配 HashRouter 避免靜態主機的路由 404。
 export default defineConfig({
   base: './',
+  resolve: {
+    alias: {
+      // circular-natal-horoscope-js 的 package.json main/module 欄位有誤（指到不存在的入口），
+      // 手動指向實際打包檔，讓 vite/rollup 解析得到。型別仍走套件的 types 欄位（tsc 不受影響）。
+      'circular-natal-horoscope-js': fileURLToPath(
+        new URL('./node_modules/circular-natal-horoscope-js/dist/index.js', import.meta.url)
+      ),
+    },
+  },
   plugins: [
     react(),
     VitePWA({

@@ -10,3 +10,8 @@ export function getProfile(): Promise<Profile | undefined> {
 export function saveProfile(profile: Omit<Profile, 'id'>): Promise<string> {
   return db.profiles.put({ ...profile, id: PROFILE_ID });
 }
+
+/** 局部更新命盤欄位（如天氣偏好縣市）。回傳更新筆數。 */
+export function updateProfile(patch: Partial<Profile>): Promise<number> {
+  return db.profiles.update(PROFILE_ID, patch);
+}

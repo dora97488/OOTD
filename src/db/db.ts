@@ -5,6 +5,7 @@
 // 圖片以 blob 存在 images 表，透過 data/ 的 storeImage / getImageURL 存取。
 // =============================================================
 import Dexie, { type Table } from 'dexie';
+import type { AstroResult } from '../engines/astro';
 
 export type WuXing = '木' | '火' | '土' | '金' | '水';
 export type Category = '上衣' | '下身' | '外套' | '洋裝' | '鞋' | '配件';
@@ -44,16 +45,23 @@ export interface Outfit {
   createdAt: number;
 }
 
+// 出生地（星盤上升/宮位用）。與天氣的 TW_CITIES 不同用途。
+export interface BirthPlace { name: string; lat: number; lng: number; }
+
 export interface Profile {
   id: string;               // 固定為 'me'
   mode: 'bazi' | 'astro';
   birthDate: string;        // YYYY-MM-DD
   birthHour?: number;       // 0-23
+  birthMinute?: number;     // 0-59（搭配 birthHour，星盤用）
   dayMasterWuxing?: WuXing;
   wuxingCount?: Record<WuXing, number>;
   favorable: WuXing[];      // 喜用（建議多穿色的五行）
   unfavorable: WuXing[];    // 忌
-  zodiacSign?: string;
+  zodiacSign?: string;      // 舊欄位（未用，由 astro.sunSign 取代）
+  birthPlace?: BirthPlace;  // 出生地（星盤需要；缺則只有五行）
+  astro?: AstroResult;      // 星盤結果（時辰＋地點齊全才有）
+  weatherCity?: string;     // 天氣偏好縣市（手動覆寫；空＝用 GPS 自動定位）
   createdAt: number;
 }
 

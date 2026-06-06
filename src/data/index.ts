@@ -9,6 +9,7 @@ export * from './items';
 export * from './outfits';
 export * from './profile';
 export * from './listings';
+export * from './market';
 export * from './wearlogs';
 export * from './images';
 export * from './backup';
