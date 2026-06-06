@@ -1,0 +1,328 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "name": "Editorial Vibe App Design Tokens",
+  "description": "Design tokens extracted from the reference interface: warm paper surfaces, editorial typography, collage imagery, soft rounded cards, and terracotta circular CTAs.",
+  "color": {
+    "background": {
+      "paper": {
+        "value": "#F7F6F2",
+        "description": "Warm paper white for primary app backgrounds."
+      },
+      "canvas": {
+        "value": "#F1F0EC",
+        "description": "Soft warm gray used behind phone/card compositions."
+      },
+      "muted": {
+        "value": "#E8E6E1",
+        "description": "Subtle neutral background for low-contrast areas."
+      }
+    },
+    "surface": {
+      "primary": {
+        "value": "#FFFFFF",
+        "description": "White card surface."
+      },
+      "soft": {
+        "value": "#FBFAF7",
+        "description": "Slightly warm white for editorial panels."
+      }
+    },
+    "text": {
+      "primary": {
+        "value": "#1E1E1C",
+        "description": "Near-black editorial text."
+      },
+      "secondary": {
+        "value": "#6F6B64",
+        "description": "Readable muted copy."
+      },
+      "muted": {
+        "value": "#B7B4AD",
+        "description": "Very soft labels, navigation, and metadata."
+      },
+      "inverse": {
+        "value": "#FFFFFF",
+        "description": "Text on terracotta buttons."
+      }
+    },
+    "accent": {
+      "terracotta": {
+        "value": "#A94D28",
+        "description": "Primary CTA color for Join and Save buttons."
+      },
+      "terracottaDark": {
+        "value": "#8F3E20",
+        "description": "Pressed or active CTA state."
+      },
+      "tomato": {
+        "value": "#D84A2B",
+        "description": "Image-derived accent for illustration details."
+      },
+      "leaf": {
+        "value": "#8FA66B",
+        "description": "Image-derived vegetable green accent."
+      },
+      "cream": {
+        "value": "#EFE7C9",
+        "description": "Soft fashion and paper collage accent."
+      },
+      "navy": {
+        "value": "#202638",
+        "description": "Deep outfit accent inspired by the reference styling."
+      },
+      "gold": {
+        "value": "#C5A24B",
+        "description": "Jewelry and premium detail accent."
+      }
+    },
+    "border": {
+      "subtle": {
+        "value": "#ECE9E3",
+        "description": "Barely visible card separators."
+      },
+      "soft": {
+        "value": "#DEDAD2",
+        "description": "Soft divider and outline color."
+      }
+    }
+  },
+  "font": {
+    "family": {
+      "serif": {
+        "value": "\"Cormorant Garamond\", \"Didot\", \"Bodoni 72\", serif",
+        "description": "Editorial serif for tabs, titles, stats, and refined labels."
+      },
+      "sans": {
+        "value": "\"Inter\", \"Helvetica Neue\", Arial, sans-serif",
+        "description": "Clean sans-serif for card headlines and functional UI."
+      }
+    },
+    "weight": {
+      "regular": {
+        "value": 400
+      },
+      "medium": {
+        "value": 500
+      },
+      "semibold": {
+        "value": 600
+      }
+    },
+    "size": {
+      "metadata": {
+        "value": "10px"
+      },
+      "caption": {
+        "value": "12px"
+      },
+      "body": {
+        "value": "16px"
+      },
+      "cardTitle": {
+        "value": "18px"
+      },
+      "tab": {
+        "value": "28px"
+      },
+      "stat": {
+        "value": "34px"
+      },
+      "hero": {
+        "value": "42px"
+      }
+    },
+    "lineHeight": {
+      "tight": {
+        "value": 0.92
+      },
+      "compact": {
+        "value": 1.05
+      },
+      "normal": {
+        "value": 1.35
+      }
+    },
+    "letterSpacing": {
+      "none": {
+        "value": "0px"
+      }
+    },
+    "case": {
+      "editorialTitle": {
+        "value": "uppercase"
+      },
+      "default": {
+        "value": "none"
+      }
+    }
+  },
+  "space": {
+    "xs": {
+      "value": "6px"
+    },
+    "sm": {
+      "value": "12px"
+    },
+    "md": {
+      "value": "20px"
+    },
+    "lg": {
+      "value": "32px"
+    },
+    "xl": {
+      "value": "56px"
+    },
+    "screenTop": {
+      "value": "72px",
+      "description": "Large top breathing room below the phone status area."
+    }
+  },
+  "radius": {
+    "card": {
+      "value": "22px"
+    },
+    "panel": {
+      "value": "26px"
+    },
+    "pill": {
+      "value": "999px"
+    },
+    "circle": {
+      "value": "50%"
+    }
+  },
+  "shadow": {
+    "none": {
+      "value": "none"
+    },
+    "paper": {
+      "value": "0 1px 2px rgba(30, 30, 28, 0.04)",
+      "description": "Almost invisible elevation; the system should rely on contrast and layout more than shadow."
+    }
+  },
+  "component": {
+    "card": {
+      "background": {
+        "value": "{color.surface.primary}"
+      },
+      "borderRadius": {
+        "value": "{radius.card}"
+      },
+      "border": {
+        "value": "1px solid {color.border.subtle}"
+      },
+      "shadow": {
+        "value": "{shadow.paper}"
+      },
+      "padding": {
+        "value": "{space.md}"
+      }
+    },
+    "primaryCta": {
+      "shape": {
+        "value": "circle"
+      },
+      "size": {
+        "value": "96px"
+      },
+      "background": {
+        "value": "{color.accent.terracotta}"
+      },
+      "color": {
+        "value": "{color.text.inverse}"
+      },
+      "fontFamily": {
+        "value": "{font.family.serif}"
+      },
+      "fontSize": {
+        "value": "18px"
+      }
+    },
+    "topNav": {
+      "fontFamily": {
+        "value": "{font.family.serif}"
+      },
+      "fontSize": {
+        "value": "16px"
+      },
+      "color": {
+        "value": "{color.text.muted}"
+      }
+    },
+    "tab": {
+      "fontFamily": {
+        "value": "{font.family.serif}"
+      },
+      "fontSize": {
+        "value": "{font.size.tab}"
+      },
+      "activeColor": {
+        "value": "{color.text.primary}"
+      },
+      "inactiveColor": {
+        "value": "{color.text.muted}"
+      },
+      "overflowBehavior": {
+        "value": "horizontal-scroll-with-soft-crop"
+      }
+    },
+    "statCard": {
+      "background": {
+        "value": "{color.surface.primary}"
+      },
+      "borderRadius": {
+        "value": "{radius.card}"
+      },
+      "labelFont": {
+        "value": "{font.family.serif}"
+      },
+      "labelStyle": {
+        "value": "italic"
+      },
+      "labelColor": {
+        "value": "{color.text.muted}"
+      },
+      "numberFont": {
+        "value": "{font.family.serif}"
+      },
+      "numberSize": {
+        "value": "{font.size.stat}"
+      }
+    }
+  },
+  "imagery": {
+    "style": {
+      "value": "editorial-collage"
+    },
+    "texture": {
+      "value": "warm-paper"
+    },
+    "preferredMedia": {
+      "value": [
+        "hand-drawn vegetable illustrations",
+        "cutout fashion items",
+        "lifestyle photography",
+        "watercolor or colored-pencil textures"
+      ]
+    },
+    "treatment": {
+      "value": [
+        "generous whitespace",
+        "minimal shadow",
+        "soft paper contrast",
+        "objects floating like a moodboard"
+      ]
+    }
+  },
+  "motion": {
+    "tabScroll": {
+      "value": "280ms ease-out"
+    },
+    "cardPress": {
+      "value": "120ms ease-out"
+    },
+    "ctaPressScale": {
+      "value": 0.97
+    }
+  }
+}
