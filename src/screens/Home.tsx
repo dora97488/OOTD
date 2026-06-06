@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { type Item } from '../db/db';
 import { getTodayAlmanac, type AlmanacInfo } from '../engines/almanac';
-import { getCurrentWeather, getCoords, type WeatherInfo } from '../engines/weather';
+import { getWeatherByCity, getCoords, nearestCity, CITY_NAMES, DEFAULT_CITY, type WeatherInfo } from '../engines/weather';
 import { recommendOutfit } from '../engines/recommend';
-import { listItems, getProfile, getImageURL } from '../data';
+import { listItems, getProfile, getImageURL, updateProfile } from '../data';
 import { WUXING_HEX } from '../constants/colors';
 
 export default function Home() {
@@ -12,9 +12,31 @@ export default function Home() {
   const items = useLiveQuery(() => listItems(), [], []);
   const [almanac, setAlmanac] = useState<AlmanacInfo>();
   const [weather, setWeather] = useState<WeatherInfo>();
+  const [city, setCity] = useState<string>();
 
   useEffect(() => { setAlmanac(getTodayAlmanac()); }, []);
-  useEffect(() => { getCoords().then((c) => getCurrentWeather(c?.lat, c?.lng).then(setWeather)); }, []);
+
+  // 解析縣市：手動覆寫(profile.weatherCity)優先 → GPS 最近縣市 → 預設縣市
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      let resolved = profile?.weatherCity;
+      if (!resolved) {
+        const c = await getCoords();
+        resolved = c ? nearestCity(c.lat, c.lng) : DEFAULT_CITY;
+      }
+      if (alive) setCity(resolved);
+    })();
+    return () => { alive = false; };
+  }, [profile?.weatherCity]);
+
+  // 依解析出的縣市查 CWA 天氣
+  useEffect(() => {
+    if (!city) return;
+    let alive = true;
+    getWeatherByCity(city).then((w) => { if (alive) setWeather(w); });
+    return () => { alive = false; };
+  }, [city]);
 
   const lucky = almanac?.luckyWuxing ?? [];
   const fav = profile?.favorable ?? [];
@@ -45,12 +67,22 @@ export default function Home() {
         </div>
       )}
 
-      {/* 天氣列（佔位，待天氣負責人接 CWA） */}
-      <div className="mt-3 flex items-center gap-4 rounded-2xl border border-line bg-card px-5 py-3 text-sm shadow-card">
+      {/* 天氣列（CWA 真資料；縣市 GPS 自動，可手動覆寫存 profile.weatherCity） */}
+      <div className="mt-3 flex items-center gap-3 rounded-2xl border border-line bg-card px-5 py-3 text-sm shadow-card">
         <span className="font-serif text-xl text-ink">{weather ? `${weather.tempC}°` : '—'}</span>
-        <span className="text-muted">{weather?.desc}</span>
+        <span className="text-muted">{weather?.desc ?? '—'}</span>
         <span className="text-muted">降雨 {weather?.rainProbPct ?? '—'}%</span>
-        <span className="ml-auto chip">天氣 API 待接</span>
+        <select
+          value={city ?? ''}
+          onChange={(e) => updateProfile({ weatherCity: e.target.value })}
+          className="ml-auto rounded-lg border border-line bg-paper px-2 py-1 text-xs text-muted"
+          aria-label="選擇縣市"
+        >
+          {!city && <option value="">定位中…</option>}
+          {CITY_NAMES.map((c) => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </select>
       </div>
 
       {/* 今日建議（用共用 recommend 引擎） */}
