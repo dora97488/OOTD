@@ -54,6 +54,7 @@ export interface Profile {
   favorable: WuXing[];      // 喜用（建議多穿色的五行）
   unfavorable: WuXing[];    // 忌
   zodiacSign?: string;
+  weatherCity?: string;     // 天氣偏好縣市（手動覆寫；空＝用 GPS 自動定位）
   createdAt: number;
 }
 
