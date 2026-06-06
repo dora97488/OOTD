@@ -1,5 +1,5 @@
 // 推薦引擎（純函式，全 App 共用）：CPW、建議轉售、今日宜穿評分。
-import type { Item, Season, WuXing } from '../db/db';
+import type { Item, Season, WuXing, WearLog } from '../db/db';
 
 const DAY = 24 * 3600 * 1000;
 
@@ -16,6 +16,29 @@ export function suggestResale(items: Item[], unwornDays = 90): Item[] {
     const boughtUnworn = !!i.price && i.price > 0 && i.wearCount <= 1;
     return longUnused || boughtUnworn;
   });
+}
+
+// 近 N 天各單品的實際穿著次數（由 WearLog.itemIds 統計；WearLog 由「今天」分頁記錄）。
+// 回傳 itemId → 次數，供「建議轉售」顯示「近 90 天穿 X 次」。
+export function recentWearCounts(
+  logs: WearLog[],
+  days = 90,
+  now = Date.now()
+): Record<string, number> {
+  const since = now - days * DAY;
+  const counts: Record<string, number> = {};
+  for (const log of logs) {
+    if (log.createdAt < since) continue;
+    for (const id of log.itemIds) counts[id] = (counts[id] ?? 0) + 1;
+  }
+  return counts;
+}
+
+// 市集單品與命主喜忌的「適配度」：喜用 +2、忌用 -1、其餘 0（簡化模型，UI 顯示需標「僅供參考」）。
+export function wuxingFit(w: WuXing, favorable: WuXing[], unfavorable: WuXing[]): number {
+  if (favorable.includes(w)) return 2;
+  if (unfavorable.includes(w)) return -1;
+  return 0;
 }
 
 export function seasonOfDate(d: Date = new Date()): Season {
