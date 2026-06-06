@@ -18,6 +18,12 @@ export async function getImageURL(id?: string): Promise<string | undefined> {
   return rec ? URL.createObjectURL(rec.blob) : undefined;
 }
 
+export async function getImageBlob(id?: string): Promise<Blob | undefined> {
+  if (!id) return undefined;
+  const rec = await db.images.get(id);
+  return rec?.blob;
+}
+
 export async function deleteImage(id?: string): Promise<void> {
   if (id) await db.images.delete(id);
 }

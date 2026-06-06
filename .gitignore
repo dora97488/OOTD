@@ -1,4 +1,8 @@
 node_modules
+.corepack
+.pnpm-store
+.xdg
+node_modules_stale_*
 dist
 dist-ssr
 *.local
