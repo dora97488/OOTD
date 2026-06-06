@@ -3,25 +3,55 @@ import { useNavigate } from 'react-router-dom';
 import { type WuXing } from '../db/db';
 import { saveProfile } from '../data';
 import { computeBazi } from '../engines/wuxing';
+import { type AstroResult } from '../engines/astro';
+import { CITIES } from '../constants/cities';
 import { WUXING_HEX } from '../constants/colors';
 
 export default function Onboarding() {
   const nav = useNavigate();
   const [birthDate, setBirthDate] = useState('');
   const [hour, setHour] = useState<string>('');
+  const [minute, setMinute] = useState<string>('');
+  const [placeName, setPlaceName] = useState<string>('');
   const [result, setResult] = useState<ReturnType<typeof computeBazi> | null>(null);
+  const [astro, setAstro] = useState<AstroResult | null>(null);
 
-  const calc = () => {
+  const calc = async () => {
     if (!birthDate) return;
     setResult(computeBazi(birthDate, hour === '' ? undefined : Number(hour)));
+    // 星盤：時辰＋出生地都齊才算（需經緯度才有上升星座）。astro 引擎較重 → 延遲載入。
+    const place = CITIES.find((c) => c.name === placeName);
+    if (hour !== '' && place) {
+      try {
+        const { computeNatalChart } = await import('../engines/astro');
+        setAstro(
+          computeNatalChart({
+            date: birthDate,
+            hour: Number(hour),
+            minute: minute === '' ? 0 : Number(minute),
+            lat: place.lat,
+            lng: place.lng,
+          })
+        );
+      } catch (e) {
+        console.warn('[astro] 星盤計算失敗：', e);
+        setAstro(null);
+      }
+    } else {
+      setAstro(null);
+    }
   };
 
   const finish = async () => {
     if (!result || !birthDate) return;
+    const place = CITIES.find((c) => c.name === placeName);
     await saveProfile({
       mode: 'bazi',
       birthDate,
       birthHour: hour === '' ? undefined : Number(hour),
+      birthMinute: minute === '' ? undefined : Number(minute),
+      birthPlace: place,
+      astro: astro ?? undefined,
       dayMasterWuxing: result.dayMasterWuxing,
       wuxingCount: result.wuxingCount,
       favorable: result.favorable,
@@ -60,6 +90,31 @@ export default function Onboarding() {
         ))}
       </select>
 
+      <label className="mt-4 block text-sm text-ink">出生分鐘（可略，預設 0）</label>
+      <input
+        type="number"
+        min={0}
+        max={59}
+        inputMode="numeric"
+        value={minute}
+        onChange={(e) => setMinute(e.target.value)}
+        placeholder="0"
+        className="mt-1 w-full rounded-xl border border-line bg-card px-4 py-3 text-ink"
+      />
+
+      <label className="mt-4 block text-sm text-ink">出生地點（可略，用來解鎖星盤）</label>
+      <select
+        value={placeName}
+        onChange={(e) => setPlaceName(e.target.value)}
+        className="mt-1 w-full rounded-xl border border-line bg-card px-4 py-3 text-ink"
+      >
+        <option value="">不確定 / 不提供</option>
+        {CITIES.map((c) => (
+          <option key={c.name} value={c.name}>{c.name}</option>
+        ))}
+      </select>
+      <p className="mt-1 text-xs text-muted">填了「時辰＋出生地」就會順便算出你的星盤（太陽／月亮／上升）。</p>
+
       {!result ? (
         <button
           onClick={calc}
@@ -79,6 +134,11 @@ export default function Onboarding() {
             <Row label="喜用（多穿）" items={result.favorable} />
             <Row label="忌（少穿）" items={result.unfavorable} />
             <p className="mt-3 text-xs text-muted">＊簡化命理模型，僅供參考。</p>
+            {astro && (
+              <p className="mt-2 text-xs text-muted">
+                ★ 星盤已解鎖：太陽 {astro.sunSign}・月亮 {astro.moonSign}・上升 {astro.risingSign}（到「我的」看詳情）
+              </p>
+            )}
           </div>
           <button onClick={finish} className="mt-6 w-full rounded-xl bg-seal py-3.5 font-medium text-white">
             開始使用

@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@imgly/background-removal": "^1.5.5",
+    "circular-natal-horoscope-js": "^1.1.0",
     "dexie": "^4.0.8",
     "dexie-react-hooks": "^1.1.7",
     "lunar-javascript": "^1.7.0",
