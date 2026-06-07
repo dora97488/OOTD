@@ -32,7 +32,7 @@
     position:relative; width:390px; height:760px; margin:64px auto 24px;
     border-radius:28px; overflow:hidden;
     box-shadow:0 20px 60px rgba(0,0,0,.5);
-    background: linear-gradient(180deg, #FFFEFD 0%, #F2F0EA 100%); /* ← 截圖漸層 */
+    background: linear-gradient(180deg, #FEFDFC 0%, #F2F0EA 100%); /* ← 截圖漸層 */
   }
 
   .oi-frame{ position:absolute; inset:0; }
@@ -57,10 +57,11 @@
   .show-mask .oi-env-front{ outline:2px dashed #ea5f45; outline-offset:-2px; }
 
   .oi-cloth{ position:absolute; }
-  .oi-cloth > img{
+  .oi-spill{ width:100%; }       /* 灑出層（交錯位移） */
+  .oi-float{ opacity:0; }        /* 浮起層（同步浮現上升；opacity 由此控制） */
+  .oi-cloth img{
     display:block; width:100%; height:auto;
     filter: drop-shadow(0 8px 12px rgba(120,100,80,.16));
-    opacity:0;
     user-select:none; -webkit-user-drag:none;
   }
 
@@ -72,24 +73,39 @@
   .play .oi-env-open{ animation: oi-fade-in .5s ease var(--open) both; }
   .play .oi-env-front{ animation: oi-fade-in .5s ease var(--open) both; }
   .play .oi-env-closed{ animation: oi-env-in .7s cubic-bezier(.2,.8,.2,1) both, oi-open-swap .45s ease var(--open) forwards; }
-  .play .oi-cloth > img{ animation: oi-drop var(--dropDur) cubic-bezier(.34,.62,.3,1) both; }
+  .play .oi-spill{ animation: oi-spill var(--dropDur) cubic-bezier(.34,.62,.3,1) both; }
+  .play .oi-float{ animation: oi-float var(--floatDur) ease-out both; animation-delay: var(--float); }
+  .play .oi-cloth img{ animation: oi-stir var(--stirDur) ease-in-out both; animation-delay: var(--stir); }
   .play .oi-skip{ animation: oi-fade-in .6s ease 1.2s both; }
 
   @keyframes oi-fade-in{ from{opacity:0} to{opacity:1} }
-  @keyframes oi-env-in{ from{ opacity:0; transform:translateY(28px) scale(.92); } to{ opacity:1; transform:translateY(0) scale(1); } }
+  @keyframes oi-env-in{ 0%{ opacity:0; transform:translateY(28px) scale(.45); } 55%{ opacity:1; } 100%{ opacity:1; transform:translateY(0) scale(1); } }
   @keyframes oi-open-swap{ to{ opacity:0; } }
   @keyframes oi-title-in{ from{ opacity:0; transform:translateY(-12px); } to{ opacity:1; transform:translateY(0); } }
-  /* 衣物「掉進」信封：快落 → 微回彈（位移疊在 wrapper 的旋轉之上） */
-  @keyframes oi-drop{
-    0%   { opacity:0; transform: translateY(-300px); }
-    8%   { opacity:1; }
-    72%  { transform: translateY(14px); }
-    86%  { transform: translateY(-5px); }
+  /* 整群同步「浮起」：之前空信封 → 從下方緩緩升起、淡入現身（套在 oi-float，整群同一 delay） */
+  @keyframes oi-float{
+    0%   { opacity:0; transform: translateY(34px); }
     100% { opacity:1; transform: translateY(0); }
+  }
+  /* 整群同步「騷動」：緩慢絲滑的左右小幅搖擺＋微微上浮露出（套在 img，整群同一 delay 齊步動） */
+  @keyframes oi-stir{
+    0%   { transform: translate(0, 0)        rotate(0deg); }
+    20%  { transform: translate(2.5px, -3px)  rotate(1.4deg); }
+    50%  { transform: translate(-2.5px, -4px) rotate(-1.4deg); }
+    80%  { transform: translate(1.5px, -2px)  rotate(.8deg); }
+    100% { transform: translate(0, 0)        rotate(0deg); }
+  }
+  /* 交錯「灑出」：從起始偏移（--dx/--dy）朝各自最終方向移出、微衝過頭再落定（套在 oi-spill） */
+  @keyframes oi-spill{
+    0%   { transform: translate(var(--dx), var(--dy)); }
+    82%  { transform: translate(0, -6px); }
+    100% { transform: translate(0, 0); }
   }
 
   /* 靜態檢視（編輯衣服 或 編輯遮罩 時）：固定在最終位置 */
-  .static .oi-cloth > img{ opacity:1 !important; animation:none !important; }
+  .static .oi-cloth img{ opacity:1 !important; animation:none !important; }
+  .static .oi-spill{ animation:none !important; }
+  .static .oi-float{ opacity:1 !important; animation:none !important; }
   .static .oi-oracle, .static .oi-today, .static .oi-skip{ opacity:1 !important; animation:none !important; }
   .static .oi-env-open, .static .oi-env-front{ opacity:1 !important; animation:none !important; }
   .static .oi-env-closed{ opacity:0 !important; animation:none !important; }
@@ -158,23 +174,28 @@
 const ENV_W = 240;
 const ENV_H = Math.round((ENV_W * 440) / 341); // ≈ 310
 
-const OPEN_AT   = 380;   // 闔→開 crossfade
-const DROP_START= 1000;  // 第一件開始掉
-const DROP_STEP = 230;   // 每件間隔
-const DROP_DUR  = 900;   // 單件掉落時長
+const OPEN_AT   = 380;   // 闔→開 crossfade；此後信封先空著
+const FLOAT_AT  = 600;   // 整群從信封裡同步「浮起」現身（之前空信封）
+const FLOAT_DUR = 900;   // 浮起上升時長（緩慢絲滑）
+const STIR_AT   = 600;   // 整群同步開始緩慢騷動（與浮起重疊 → 邊浮邊晃）
+const STIR_DUR  = 1000;  // 同步騷動時長（緩慢絲滑，ease-in-out 一個來回）
+const DROP_START= 1600;  // 浮起＋騷動完後第一件開始灑出
+const DROP_STEP = 230;   // 每件間隔（交錯）
+const DROP_DUR  = 900;   // 單件灑出時長
 
-// 掉落順序＝陣列順序＝檔名 1→8；z-index 同序（後掉疊在前）
-// cx/by = 中心x、底部y（相對 stack 左上, px）；w=顯示寬；rot=旋轉(deg)
+// 灑出順序＝陣列順序＝檔名 1→8；z-index 同序（後出疊在前）
+// sx/sy = 起始（浮起後、騷動時的分散位置，較低）；cx/by = 結束（灑出後最終定位）
+// w=顯示寬；rot=旋轉(deg)；灑出方向 =（sx−cx, sy−by）自動指向終點
 let CLOTHES = [
-  { src: 'cutout_pants_1.png',       cx: 122, by: 244, w:  72, rot:  -8 },
-  { src: 'cutout_skirt_brown_2.png', cx:  77, by: 209, w:  66, rot:  -4 },
-  { src: 'cutout_dress_2.png',       cx: 194, by: 210, w:  84, rot:  -3 },
-  { src: 'cutout_shirt_3.png',       cx:  59, by: 181, w:  66, rot:  -7 },
-  { src: 'cutout_pants_4.png',       cx:  88, by: 169, w:  66, rot:   7 },
-  { src: 'cutout_coat_5.png',        cx: 161, by: 169, w:  78, rot:  14 },
-  { src: 'cutout_shirt_6.png',       cx: 121, by: 166, w:  82, rot:  -1 },
-  { src: 'cutout_sleeveless_7.png',  cx: 127, by: 192, w:  72, rot:   1 },
-  { src: 'cutout_outer_8.png',       cx: 168, by: 214, w:  82, rot:  11 },
+  { src: 'cutout_pants_1.png',       cx: 124, by: 243, w:  72, rot:  -8, sx: 124, sy: 280 },
+  { src: 'cutout_skirt_brown_2.png', cx:  78, by: 214, w:  66, rot:  -4, sx:  78, sy: 244 },
+  { src: 'cutout_dress_2.png',       cx: 197, by: 176, w:  84, rot:  -3, sx: 191, sy: 265 },
+  { src: 'cutout_shirt_3.png',       cx:  53, by: 174, w:  66, rot:  -7, sx:  68, sy: 260 },
+  { src: 'cutout_pants_4.png',       cx:  90, by: 158, w:  66, rot:   7, sx: 105, sy: 270 },
+  { src: 'cutout_coat_5.png',        cx: 173, by: 107, w:  78, rot:   9, sx: 151, sy: 260 },
+  { src: 'cutout_shirt_6.png',       cx: 129, by: 134, w:  82, rot:  -1, sx: 127, sy: 255 },
+  { src: 'cutout_sleeveless_7.png',  cx: 133, by: 169, w:  72, rot:   1, sx: 143, sy: 280 },
+  { src: 'cutout_outer_8.png',       cx: 169, by: 200, w:  82, rot:  11, sx: 183, sy: 280 },
 ];
 
 // 前袋遮罩 clip-path 頂點（% of 信封顯示框）。順序＝多邊形繞行順序。
@@ -205,14 +226,24 @@ function render(){
     wrap.style.width = c.w + 'px';
     wrap.style.transform = `translateX(-50%) rotate(${c.rot}deg)`;
     wrap.style.zIndex = i + 1;
+    // 灑出層：交錯延遲＋灑出方向（起始 − 終點 → 自動朝各自最終位置）
+    const spill = document.createElement('div');
+    spill.className = 'oi-spill';
+    spill.style.animationDelay = ((DROP_START + i * DROP_STEP) / speed) + 'ms';
+    spill.style.setProperty('--dx', (c.sx - c.cx) + 'px');
+    spill.style.setProperty('--dy', (c.sy - c.by) + 'px');
+    // 浮起層：整群同步浮現上升
+    const floatEl = document.createElement('div');
+    floatEl.className = 'oi-float';
     const img = document.createElement('img');
     img.src = 'img/' + c.src;
     img.draggable = false;
-    img.style.animationDelay = ((DROP_START + i * DROP_STEP) / speed) + 'ms';
     const tag = document.createElement('span');
     tag.className = 'tag';
     tag.textContent = `${i+1} ${c.src.replace('cutout_','').replace('.png','')}`;
-    wrap.appendChild(img); wrap.appendChild(tag);
+    floatEl.appendChild(img);
+    spill.appendChild(floatEl);
+    wrap.appendChild(spill); wrap.appendChild(tag);
     stack.insertBefore(wrap, envFront); // 衣服在 front 遮罩之前
   });
   applyTimingVars();
@@ -222,6 +253,10 @@ function applyTimingVars(){
   frame.style.setProperty('--open', (OPEN_AT / speed) + 'ms');
   frame.style.setProperty('--today', (TODAY_AT / speed) + 'ms');
   frame.style.setProperty('--dropDur', (DROP_DUR / speed) + 'ms');
+  frame.style.setProperty('--float', (FLOAT_AT / speed) + 'ms');
+  frame.style.setProperty('--floatDur', (FLOAT_DUR / speed) + 'ms');
+  frame.style.setProperty('--stir', (STIR_AT / speed) + 'ms');
+  frame.style.setProperty('--stirDur', (STIR_DUR / speed) + 'ms');
 }
 
 function play(){
@@ -233,7 +268,7 @@ function play(){
 
 function dumpText(){
   const lines = CLOTHES.map(c =>
-    `  { src: '${c.src}', cx: ${Math.round(c.cx)}, by: ${Math.round(c.by)}, w: ${c.w}, rot: ${c.rot} },`
+    `  { src: '${c.src}', cx: ${Math.round(c.cx)}, by: ${Math.round(c.by)}, w: ${c.w}, rot: ${c.rot}, sx: ${Math.round(c.sx)}, sy: ${Math.round(c.sy)} },`
   ).join('\n');
   return 'let CLOTHES = [\n' + lines + '\n];';
 }

@@ -1,9 +1,11 @@
 // App 殼：HashRouter 路由 + onboarding 守門 + 底部導覽（BottomNav：Rainie tabbar 設計 + prototype lucide icon）。
 // 全螢幕手機殼（max-w-md，可捲動），不用桌面手機框；各功能頁掛在 <Routes>。
 // 新增頁面：加一條 <Route> 並在 screens/ 放對應檔。HashRouter 為相容 GitHub Pages / Capacitor，勿改 BrowserRouter。
+import { useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { getProfile } from './data';
+import { warmUpBackgroundRemover } from './engines/bgRemove';
 import BottomNav from './components/BottomNav';
 
 import Onboarding from './screens/Onboarding';
@@ -70,6 +72,22 @@ function Shell() {
 }
 
 export default function App() {
+  // 閒置時預熱去背 WASM 模型（數十 MB），讓使用者首次拍照「去背中…」幾乎秒過。
+  // 放 App 啟動而非 onboarding：首訪（填生辰時）與回訪都涵蓋。失敗不影響 App。
+  useEffect(() => {
+    const warm = () => { void warmUpBackgroundRemover(); };
+    const ric = (window as any).requestIdleCallback as
+      | ((cb: () => void, opts?: { timeout: number }) => number)
+      | undefined;
+    if (ric) {
+      const id = ric(warm, { timeout: 4000 });
+      return () => (window as any).cancelIdleCallback?.(id);
+    }
+    // Safari 沒有 requestIdleCallback → 退而求其次延遲觸發，不卡首屏渲染。
+    const t = setTimeout(warm, 1500);
+    return () => clearTimeout(t);
+  }, []);
+
   return (
     <HashRouter>
       <Shell />

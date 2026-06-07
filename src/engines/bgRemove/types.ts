@@ -8,4 +8,9 @@ export interface BackgroundRemover {
   isAvailable(): Promise<boolean>;
   /** 去背：輸入原圖 blob，回傳去背後 blob（保留透明）。onProgress 回報 0~1。 */
   remove(input: Blob, onProgress?: (ratio: number) => void): Promise<Blob>;
+  /**
+   * 選用：預先下載 / 初始化模型資源（不實際去背）。在 App 閒置時呼叫，
+   * 讓使用者首次拍照時模型已就緒，避免「去背中…」久候。可重複呼叫（內部需自行去重）。
+   */
+  warmUp?(): Promise<void>;
 }

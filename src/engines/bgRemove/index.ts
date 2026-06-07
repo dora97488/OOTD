@@ -41,3 +41,13 @@ export async function removeBackground(
   const provider = await getBackgroundRemover();
   return provider.remove(input, onProgress);
 }
+
+/**
+ * 預熱去背引擎 —— 在 App 閒置時先把模型資源抓好 / 初始化，
+ * 讓使用者首次拍照時模型已就緒，省去「去背中…」久候。
+ * provider 沒實作 warmUp 時為 no-op；可安全重複呼叫（內部去重）。
+ */
+export async function warmUpBackgroundRemover(): Promise<void> {
+  const provider = await getBackgroundRemover();
+  await provider.warmUp?.();
+}
