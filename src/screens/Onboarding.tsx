@@ -79,7 +79,7 @@ export default function Onboarding() {
   return (
     <div className="px-6 py-10">
       <p className="font-serif text-4xl tracking-widest text-seal">OOTD</p>
-      <p className="mt-2 text-sm text-muted">The Weather Doesn't Bother Me Anyway</p>
+      <p className="mt-2 text-sm text-muted">Never stress over what to wear.</p>
 
       <h1 className="mt-10 font-serif text-2xl text-ink">先算你的五行</h1>
       <p className="mt-1 text-sm text-muted">輸入生辰，我們會算出你的喜用五行，用來推薦開運穿搭。</p>

@@ -1,6 +1,6 @@
 # OOTD — Outfit Oracle Today
 
-> The Weather Doesn't Bother Me Anyway
+> Never stress over what to wear.
 > 結合命理（五行 / 農民曆）與天氣的電子衣櫥 PWA。
 
 這是 **Phase 0 基礎建設骨架**：一個能跑、能裝、能離線的純本機 PWA，把全隊共用的東西先做好。各功能負責人在既有插槽上往裡填即可，不必再搭環境。

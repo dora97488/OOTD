@@ -1,6 +1,6 @@
 # OOTD（Outfit Oracle Today）開發計劃書 v2
 
-> **Slogan：** The Weather Doesn't Bother Me Anyway
+> **Slogan：** Never stress over what to wear.
 > **一句話定義：** 結合命理（五行 / 農民曆）與天氣的「電子衣櫥 + 今日開運穿搭」App。
 > 本版依據你們的 IA 與 UI 參考圖重寫，取代第一版。重點：先講清楚架構決策，再把完整功能分階段排序，並標出每項功能「真正需要什麼」。
 

@@ -23,7 +23,7 @@ export default defineConfig({
       manifest: {
         name: 'OOTD — Outfit Oracle Today',
         short_name: 'OOTD',
-        description: '結合命理與天氣的電子衣櫥。The Weather Doesn\'t Bother Me Anyway.',
+        description: '結合命理與天氣的電子衣櫥。Never stress over what to wear.',
         start_url: '.',
         scope: '.',
         display: 'standalone',

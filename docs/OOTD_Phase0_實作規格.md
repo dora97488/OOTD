@@ -2,7 +2,7 @@
 
 > **範圍：** 純 local-first PWA、WASM 去背、**無後端**。本檔自足，照做即可。完整路線圖見《OOTD 開發計劃書 v2》。
 > **決策定案：** ① 維持 PWA（免 Mac、零成本）② 轉售電商**先做畫面**（本機草稿，不接市集/買家/金流）。
-> **Slogan：** The Weather Doesn't Bother Me Anyway
+> **Slogan：** Never stress over what to wear.
 
 ---
 
