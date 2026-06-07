@@ -16,7 +16,16 @@ npm run build    # 產出 dist/（已驗證可 build，含 PWA service worker）
 npm run preview  # 預覽 build 結果
 ```
 
-手機測試：`npm run dev -- --host` 後用同網段手機開；或部署後（見下）用 Safari →「加入主畫面」安裝成全螢幕 App。
+### 在手機上看
+
+| 目的 | 做法 |
+| --- | --- |
+| **只看畫面/排版**（最快） | `npm run dev -- --host` → 手機（**同一 Wi-Fi**）開 `http://<你的電腦區網IP>:5173`（用 `ipconfig getifaddr en0` 查 IP）。改 code 即時 reload。 |
+| **測完整 PWA**（安裝到主畫面、SW、定位、通知） | 需要 HTTPS。`npm run build && npm run preview -- --host`，另開終端機跑 tunnel：`cloudflared tunnel --url http://localhost:4173`，手機開它給的 `https://…trycloudflare.com`。 |
+| **分享給別人/最穩** | `npm run build` 後把 `dist/` 丟 Netlify drop 或 `vercel --prod`（見下方「部署」）。 |
+
+> ⚠️ **坑**：純 http + 區網 IP **不是 secure context**，所以第一種方法下 **Service Worker / PWA 安裝 / 定位 / 通知都不會生效**（畫面照常顯示）。要測這些一定要走 HTTPS（tunnel 或部署）。
+> ⚠️ 天氣功能需 `VITE_CWA_API_KEY`；部署平台記得設環境變數，否則天氣列抓不到（不影響其他畫面）。
 
 ---
 
