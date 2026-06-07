@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import OnboardingIntro from './OnboardingIntro';
 import { type WuXing } from '../db/db';
 import { saveProfile } from '../data';
 import { computeBazi } from '../engines/wuxing';
@@ -10,6 +11,7 @@ import { hourToShichen } from '../engines/shichen';
 
 export default function Onboarding() {
   const nav = useNavigate();
+  const [intro, setIntro] = useState(true); // 先播開場動畫，播完才進表單
   const [nickname, setNickname] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [time, setTime] = useState<string>(''); // "HH:MM"，空＝不確定
@@ -69,6 +71,10 @@ export default function Onboarding() {
     // TODO(onboarding 負責人)：第④步「推播授權」可呼叫 platform/capabilities 的 requestNotificationPermission()
     nav('/', { replace: true });
   };
+
+  if (intro) {
+    return <OnboardingIntro onDone={() => setIntro(false)} />;
+  }
 
   return (
     <div className="px-6 py-10">

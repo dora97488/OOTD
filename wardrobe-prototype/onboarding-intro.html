@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Onboarding 開場動畫 — 獨立調整版</title>
+<!--
+  獨立預覽 / 調整檔。直接用瀏覽器開這個檔即可（吃同層 img/ 的素材）。
+  改完把下方 <CONFIG> 與 <CSS keyframes> 的值同步回 src/screens/OnboardingIntro.tsx。
+  ─ 編輯模式：停住動畫、可拖曳每件衣服，即時顯示 cx/by/rot，按「匯出 CLOTHES」貼回 React。
+-->
+<style>
+  :root{ font-family: ui-sans-serif, system-ui, "PingFang TC", sans-serif; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:#2a2724; color:#eee; }
+
+  /* ── 控制列 ── */
+  .bar{
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+    padding:8px 12px; background:#1c1a18; border-bottom:1px solid #3a3631;
+    font-size:13px;
+  }
+  .bar button{ background:#ea5f45; color:#fff; border:0; border-radius:8px; padding:6px 12px; cursor:pointer; font-size:13px; }
+  .bar button.ghost{ background:#3a3631; }
+  .bar label{ display:flex; align-items:center; gap:5px; color:#cfc8bf; }
+  .bar input[type=range]{ width:120px; }
+  .hint{ color:#8b837a; }
+
+  /* ── 舞台（手機尺寸） ── */
+  .phone{
+    position:relative; width:390px; height:760px; margin:64px auto 24px;
+    border-radius:28px; overflow:hidden;
+    box-shadow:0 20px 60px rgba(0,0,0,.5);
+    background: linear-gradient(180deg, #FFFEFD 0%, #F2F0EA 100%); /* ← 截圖漸層 */
+  }
+
+  .oi-frame{ position:absolute; inset:0; }
+
+  .oi-oracle{ position:absolute; top:16%; left:14%; width:80%; max-width:300px; opacity:0; }
+  .oi-today{ position:absolute; bottom:23%; left:26%; width:70%; max-width:215px; opacity:0; }
+
+  .oi-stack{ position:absolute; left:50%; top:46%; transform:translate(-50%,-50%); }
+
+  .oi-env-open, .oi-env-front, .oi-env-closed{
+    position:absolute; left:0; bottom:0; width:100%;
+    user-select:none; -webkit-user-drag:none;
+  }
+  .oi-env-open{ z-index:0; opacity:0; }
+  .oi-env-front{
+    z-index:20; opacity:0;
+    clip-path: polygon(0% 44%, 12% 46%, 35% 65%, 64% 65%, 88% 45%, 97% 45%, 97% 100%, 50% 100%, 0% 100%); /* ← 前袋遮罩線 */
+  }
+  .oi-env-closed{ z-index:30; }
+
+  /* 顯示遮罩輪廓（對齊用） */
+  .show-mask .oi-env-front{ outline:2px dashed #ea5f45; outline-offset:-2px; }
+
+  .oi-cloth{ position:absolute; }
+  .oi-cloth > img{
+    display:block; width:100%; height:auto;
+    filter: drop-shadow(0 8px 12px rgba(120,100,80,.16));
+    opacity:0;
+    user-select:none; -webkit-user-drag:none;
+  }
+
+  .oi-skip{ position:absolute; bottom:3.5%; left:0; right:0; text-align:center; font-size:12px; letter-spacing:.1em; color:#bfb4a3; opacity:0; }
+
+  /* ───────── 動畫播放模式（class .play 啟用） ───────── */
+  .play .oi-oracle{ animation: oi-title-in .8s ease var(--open) both; }
+  .play .oi-today{ animation: oi-title-in .9s ease var(--today) both; }
+  .play .oi-env-open{ animation: oi-fade-in .5s ease var(--open) both; }
+  .play .oi-env-front{ animation: oi-fade-in .5s ease var(--open) both; }
+  .play .oi-env-closed{ animation: oi-env-in .7s cubic-bezier(.2,.8,.2,1) both, oi-open-swap .45s ease var(--open) forwards; }
+  .play .oi-cloth > img{ animation: oi-drop var(--dropDur) cubic-bezier(.34,.62,.3,1) both; }
+  .play .oi-skip{ animation: oi-fade-in .6s ease 1.2s both; }
+
+  @keyframes oi-fade-in{ from{opacity:0} to{opacity:1} }
+  @keyframes oi-env-in{ from{ opacity:0; transform:translateY(28px) scale(.92); } to{ opacity:1; transform:translateY(0) scale(1); } }
+  @keyframes oi-open-swap{ to{ opacity:0; } }
+  @keyframes oi-title-in{ from{ opacity:0; transform:translateY(-12px); } to{ opacity:1; transform:translateY(0); } }
+  /* 衣物「掉進」信封：快落 → 微回彈（位移疊在 wrapper 的旋轉之上） */
+  @keyframes oi-drop{
+    0%   { opacity:0; transform: translateY(-300px); }
+    8%   { opacity:1; }
+    72%  { transform: translateY(14px); }
+    86%  { transform: translateY(-5px); }
+    100% { opacity:1; transform: translateY(0); }
+  }
+
+  /* 靜態檢視（編輯衣服 或 編輯遮罩 時）：固定在最終位置 */
+  .static .oi-cloth > img{ opacity:1 !important; animation:none !important; }
+  .static .oi-oracle, .static .oi-today, .static .oi-skip{ opacity:1 !important; animation:none !important; }
+  .static .oi-env-open, .static .oi-env-front{ opacity:1 !important; animation:none !important; }
+  .static .oi-env-closed{ opacity:0 !important; animation:none !important; }
+  .edit .oi-cloth{ cursor:grab; }
+  .edit .oi-cloth:active{ cursor:grabbing; }
+
+  .tag{ position:absolute; top:-16px; left:50%; transform:translateX(-50%); white-space:nowrap;
+        font-size:10px; background:#1c1a18; color:#ea5f45; padding:1px 5px; border-radius:4px; pointer-events:none; display:none; }
+  .edit .tag{ display:block; }
+
+  /* ── clip-path 編輯器：拖曳頂點 ── */
+  .clip-handles{ position:absolute; inset:0; z-index:40; pointer-events:none; display:none; }
+  .editmask .clip-handles{ display:block; }
+  .editmask .oi-env-front{ outline:2px dashed #ea5f45; outline-offset:-2px; }
+  .clip-handles .pt{
+    position:absolute; width:16px; height:16px; margin:-8px 0 0 -8px;
+    border-radius:50%; background:#ea5f45; border:2px solid #fff;
+    pointer-events:auto; cursor:grab; box-shadow:0 1px 4px rgba(0,0,0,.5);
+  }
+  .clip-handles .pt:active{ cursor:grabbing; }
+  .clip-handles .pt b{ position:absolute; top:-16px; left:50%; transform:translateX(-50%);
+    font-size:9px; color:#fff; background:#1c1a18; padding:0 4px; border-radius:3px; white-space:nowrap; }
+
+  .panel{ max-width:760px; margin:0 auto 60px; padding:0 12px; }
+  .panel textarea{ width:100%; height:200px; background:#1c1a18; color:#cfc8bf; border:1px solid #3a3631; border-radius:8px; padding:10px; font-family:ui-monospace, monospace; font-size:12px; }
+  .panel h3{ color:#cfc8bf; font-weight:600; font-size:13px; margin:18px 0 6px; }
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <button id="replay">▶ 重播</button>
+  <label><input type="checkbox" id="editMode" /> 編輯模式（拖曳衣服）</label>
+  <label><input type="checkbox" id="maskEdit" /> 編輯遮罩（拉 clip-path）</label>
+  <button class="ghost" id="addPt">＋遮罩點</button>
+  <label>速度 <input type="range" id="speed" min="0.3" max="2" step="0.1" value="1" /> <span id="speedVal">1.0×</span></label>
+  <button class="ghost" id="export">⬇ 匯出 CLOTHES</button>
+  <span class="hint">改完把值同步回 OnboardingIntro.tsx</span>
+</div>
+
+<div class="phone" id="phone">
+  <div class="oi-frame" id="frame">
+    <img class="oi-oracle" src="img/outfit_oracle.svg" alt="Outfit Oracle" draggable="false" />
+    <div class="oi-stack" id="stack">
+      <img class="oi-env-open"  src="img/envelope_2.png" alt="" draggable="false" />
+      <!-- 衣服由 JS 插入 -->
+      <img class="oi-env-front" src="img/envelope_2.png" alt="" draggable="false" />
+      <img class="oi-env-closed" src="img/envelope_1.png" alt="" draggable="false" />
+      <div class="clip-handles" id="clipHandles"></div>
+    </div>
+    <img class="oi-today" src="img/today.svg" alt="Today" draggable="false" />
+    <span class="oi-skip">點一下跳過</span>
+  </div>
+</div>
+
+<div class="panel">
+  <h3>CLOTHES（編輯模式拖曳後按「匯出」更新；或直接改數字）</h3>
+  <textarea id="dump" spellcheck="false"></textarea>
+
+  <h3>clip-path（勾「編輯遮罩」拉頂點：拖曳移動、雙擊刪除、＋遮罩點新增）</h3>
+  <textarea id="clipOut" spellcheck="false" style="height:60px"></textarea>
+</div>
+
+<script>
+/* ====================== CONFIG（同步回 OnboardingIntro.tsx） ====================== */
+const ENV_W = 240;
+const ENV_H = Math.round((ENV_W * 440) / 341); // ≈ 310
+
+const OPEN_AT   = 380;   // 闔→開 crossfade
+const DROP_START= 1000;  // 第一件開始掉
+const DROP_STEP = 230;   // 每件間隔
+const DROP_DUR  = 900;   // 單件掉落時長
+
+// 掉落順序＝陣列順序＝檔名 1→8；z-index 同序（後掉疊在前）
+// cx/by = 中心x、底部y（相對 stack 左上, px）；w=顯示寬；rot=旋轉(deg)
+let CLOTHES = [
+  { src: 'cutout_pants_1.png',       cx: 122, by: 244, w:  72, rot:  -8 },
+  { src: 'cutout_skirt_brown_2.png', cx:  77, by: 209, w:  66, rot:  -4 },
+  { src: 'cutout_dress_2.png',       cx: 194, by: 210, w:  84, rot:  -3 },
+  { src: 'cutout_shirt_3.png',       cx:  59, by: 181, w:  66, rot:  -7 },
+  { src: 'cutout_pants_4.png',       cx:  88, by: 169, w:  66, rot:   7 },
+  { src: 'cutout_coat_5.png',        cx: 161, by: 169, w:  78, rot:  14 },
+  { src: 'cutout_shirt_6.png',       cx: 121, by: 166, w:  82, rot:  -1 },
+  { src: 'cutout_sleeveless_7.png',  cx: 127, by: 192, w:  72, rot:   1 },
+  { src: 'cutout_outer_8.png',       cx: 168, by: 214, w:  82, rot:  11 },
+];
+
+// 前袋遮罩 clip-path 頂點（% of 信封顯示框）。順序＝多邊形繞行順序。
+let CLIP = [ [0,44], [12,46], [35,65], [64,65], [88,45], [97,45], [97,100], [50,100], [0,100] ];
+/* ================================================================================= */
+
+const TODAY_AT = DROP_START + DROP_STEP * (CLOTHES.length - 1) + DROP_DUR - 200;
+
+const stack = document.getElementById('stack');
+const phone = document.getElementById('phone');
+const frame = document.getElementById('frame');
+const envFront = stack.querySelector('.oi-env-front');
+
+stack.style.width = ENV_W + 'px';
+stack.style.height = ENV_H + 'px';
+
+let speed = 1;
+
+function render(){
+  // 移除舊衣服
+  stack.querySelectorAll('.oi-cloth').forEach(n => n.remove());
+  CLOTHES.forEach((c, i) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'oi-cloth';
+    wrap.dataset.idx = i;
+    wrap.style.left = c.cx + 'px';
+    wrap.style.bottom = (ENV_H - c.by) + 'px';
+    wrap.style.width = c.w + 'px';
+    wrap.style.transform = `translateX(-50%) rotate(${c.rot}deg)`;
+    wrap.style.zIndex = i + 1;
+    const img = document.createElement('img');
+    img.src = 'img/' + c.src;
+    img.draggable = false;
+    img.style.animationDelay = ((DROP_START + i * DROP_STEP) / speed) + 'ms';
+    const tag = document.createElement('span');
+    tag.className = 'tag';
+    tag.textContent = `${i+1} ${c.src.replace('cutout_','').replace('.png','')}`;
+    wrap.appendChild(img); wrap.appendChild(tag);
+    stack.insertBefore(wrap, envFront); // 衣服在 front 遮罩之前
+  });
+  applyTimingVars();
+}
+
+function applyTimingVars(){
+  frame.style.setProperty('--open', (OPEN_AT / speed) + 'ms');
+  frame.style.setProperty('--today', (TODAY_AT / speed) + 'ms');
+  frame.style.setProperty('--dropDur', (DROP_DUR / speed) + 'ms');
+}
+
+function play(){
+  frame.classList.remove('play');
+  void frame.offsetWidth; // reflow → 重新觸發動畫
+  render();
+  frame.classList.add('play');
+}
+
+function dumpText(){
+  const lines = CLOTHES.map(c =>
+    `  { src: '${c.src}', cx: ${Math.round(c.cx)}, by: ${Math.round(c.by)}, w: ${c.w}, rot: ${c.rot} },`
+  ).join('\n');
+  return 'let CLOTHES = [\n' + lines + '\n];';
+}
+function refreshDump(){ document.getElementById('dump').value = dumpText(); }
+
+/* ── clip-path 編輯 ── */
+const clipHandles = document.getElementById('clipHandles');
+const clipOut = document.getElementById('clipOut');
+
+function clipStr(){ return 'polygon(' + CLIP.map(p => `${Math.round(p[0])}% ${Math.round(p[1])}%`).join(', ') + ')'; }
+function applyClip(){
+  const s = clipStr();
+  envFront.style.clipPath = s;
+  clipOut.value = 'clip-path: ' + s + ';';
+}
+function renderClipHandles(){
+  clipHandles.innerHTML = '';
+  CLIP.forEach((p, i) => {
+    const h = document.createElement('div');
+    h.className = 'pt';
+    h.dataset.idx = i;
+    h.style.left = (p[0]/100*ENV_W) + 'px';
+    h.style.top  = (p[1]/100*ENV_H) + 'px';
+    h.innerHTML = `<b>${Math.round(p[0])},${Math.round(p[1])}</b>`;
+    clipHandles.appendChild(h);
+  });
+}
+function refreshClip(){ applyClip(); if(phone.classList.contains('editmask')) renderClipHandles(); }
+
+// 新增點：插在最長邊的中點
+document.getElementById('addPt').onclick = () => {
+  let best = 0, bi = 0;
+  for(let i=0;i<CLIP.length;i++){
+    const a = CLIP[i], b = CLIP[(i+1)%CLIP.length];
+    const d = Math.hypot(a[0]-b[0], a[1]-b[1]);
+    if(d>best){ best=d; bi=i; }
+  }
+  const a = CLIP[bi], b = CLIP[(bi+1)%CLIP.length];
+  CLIP.splice(bi+1, 0, [Math.round((a[0]+b[0])/2), Math.round((a[1]+b[1])/2)]);
+  if(!document.getElementById('maskEdit').checked) document.getElementById('maskEdit').click();
+  refreshClip();
+};
+
+// 拖曳 / 雙擊刪除頂點
+let clipDrag = null;
+clipHandles.addEventListener('pointerdown', e => {
+  const pt = e.target.closest('.pt'); if(!pt) return;
+  clipDrag = { idx:+pt.dataset.idx, el:pt, r:stack.getBoundingClientRect() };
+  pt.setPointerCapture(e.pointerId);
+});
+clipHandles.addEventListener('pointermove', e => {
+  if(!clipDrag) return;
+  const x = (e.clientX - clipDrag.r.left)/ENV_W*100;
+  const y = (e.clientY - clipDrag.r.top)/ENV_H*100;
+  CLIP[clipDrag.idx] = [ Math.max(0,Math.min(100,x)), Math.max(0,Math.min(100,y)) ];
+  clipDrag.el.style.left = (CLIP[clipDrag.idx][0]/100*ENV_W) + 'px';
+  clipDrag.el.style.top  = (CLIP[clipDrag.idx][1]/100*ENV_H) + 'px';
+  clipDrag.el.querySelector('b').textContent = Math.round(CLIP[clipDrag.idx][0])+','+Math.round(CLIP[clipDrag.idx][1]);
+  applyClip();
+});
+clipHandles.addEventListener('pointerup', () => { clipDrag = null; });
+clipHandles.addEventListener('dblclick', e => {
+  const pt = e.target.closest('.pt'); if(!pt) return;
+  if(CLIP.length<=3) return;            // 至少留 3 點
+  CLIP.splice(+pt.dataset.idx, 1);
+  refreshClip();
+});
+// 手動改 clip 文字框
+clipOut.addEventListener('change', e => {
+  const m = e.target.value.match(/polygon\(([^)]*)\)/);
+  if(!m) return;
+  const pts = m[1].split(',').map(s => s.trim().split(/\s+/).map(v => parseFloat(v)));
+  if(pts.length>=3 && pts.every(p => p.length===2 && p.every(Number.isFinite))){ CLIP = pts; refreshClip(); }
+});
+
+/* ── 靜態檢視 = 編輯衣服 或 編輯遮罩 ── */
+function syncStatic(){
+  const editing = document.getElementById('editMode').checked;
+  const masking = document.getElementById('maskEdit').checked;
+  phone.classList.toggle('edit', editing);
+  phone.classList.toggle('editmask', masking);
+  phone.classList.toggle('static', editing || masking);
+  if(editing || masking){ frame.classList.remove('play'); render(); refreshClip(); if(editing) refreshDump(); }
+  else { play(); }
+}
+
+/* ── 控制 ── */
+document.getElementById('replay').onclick = () => { if(!phone.classList.contains('static')) play(); };
+document.getElementById('speed').oninput = e => {
+  speed = parseFloat(e.target.value);
+  document.getElementById('speedVal').textContent = speed.toFixed(1) + '×';
+  applyTimingVars();
+};
+document.getElementById('editMode').onchange = syncStatic;
+document.getElementById('maskEdit').onchange = syncStatic;
+document.getElementById('export').onclick = () => { refreshDump(); document.getElementById('dump').select(); };
+
+/* ── 拖曳（編輯模式） ── */
+let drag = null;
+stack.addEventListener('pointerdown', e => {
+  if(!phone.classList.contains('edit')) return;
+  const wrap = e.target.closest('.oi-cloth');
+  if(!wrap) return;
+  const idx = +wrap.dataset.idx;
+  const r = stack.getBoundingClientRect();
+  drag = { idx, wrap, r };
+  wrap.setPointerCapture(e.pointerId);
+});
+stack.addEventListener('pointermove', e => {
+  if(!drag) return;
+  const x = e.clientX - drag.r.left;
+  const y = e.clientY - drag.r.top;
+  const c = CLOTHES[drag.idx];
+  c.cx = Math.round(x);
+  c.by = Math.round(y);            // 以指標位置當「底部 y」
+  drag.wrap.style.left = c.cx + 'px';
+  drag.wrap.style.bottom = (ENV_H - c.by) + 'px';
+  refreshDump();
+});
+stack.addEventListener('pointerup', () => { drag = null; });
+
+/* 手動編輯 textarea → 套用（解析簡單格式） */
+document.getElementById('dump').addEventListener('change', e => {
+  try{
+    const arr = Function('"use strict";' + e.target.value.replace(/^let /, 'return ').replace('CLOTHES =', '') )();
+    if(Array.isArray(arr) && arr.length){ CLOTHES = arr; render(); }
+  }catch(err){ console.warn('解析失敗', err); }
+});
+
+refreshDump();
+applyClip();
+play();
+</script>
+</body>
+</html>

@@ -9,6 +9,7 @@ import { removeBackground } from '../engines/bgRemove';
 import { productizeItemPhoto, isItemPhotoAvailable, stickerize } from '../engines/itemPhoto';
 import { detectOutfitItems, isOutfitDetectionAvailable } from '../engines/outfitDetect';
 import { parseProductLink, fetchProductImage, isValidUrl } from '../engines/productLink';
+import { hasOpenAIKey, getUserOpenAIKey, saveOpenAIKey } from '../engines/openaiKey';
 import { dominantColor } from '../engines/color';
 import { colorToWuxing } from '../engines/wuxing';
 import { WUXING_HEX } from '../constants/colors';
@@ -89,6 +90,8 @@ export default function AddItem() {
   const [outfitBusyLabel, setOutfitBusyLabel] = useState('辨識中…');
   const [outfitProgress, setOutfitProgress] = useState(0);
   const [linkUrl, setLinkUrl] = useState('');
+  const [showKeyModal, setShowKeyModal] = useState(false);
+  const [keyConfigured, setKeyConfigured] = useState(hasOpenAIKey());
 
   useEffect(() => {
     if (!toast) return;
@@ -168,7 +171,7 @@ export default function AddItem() {
     } catch (e) {
       console.error(e);
       detected = MOCK_DETECTED_ITEMS.map((item) => ({ ...item, id: uuid() }));
-      showUnavailable('整套辨識失敗，已先用 prototype 模擬結果。請確認 VITE_OPENAI_API_KEY 是否可用。');
+      showUnavailable('整套辨識失敗，已先用 prototype 模擬結果。請於上一頁填入可用的 OpenAI API Key。');
     } finally {
       window.clearInterval(detectTimer);
     }
@@ -488,6 +491,22 @@ export default function AddItem() {
           <p className="px-1 pt-2 text-xs text-muted">
             三種方式都會整理成衣櫥單品；拍攝路徑會產生帶白邊的商品貼紙圖，並抽出主色對應五行。
           </p>
+
+          <button
+            type="button"
+            onClick={() => setShowKeyModal(true)}
+            className="mt-4 flex w-full items-center justify-between rounded-xl border border-line bg-card px-4 py-3 text-left"
+          >
+            <span>
+              <span className="block text-sm font-medium text-ink">OpenAI API Key</span>
+              <span className="mt-0.5 block text-xs text-muted">
+                {keyConfigured ? '已設定，AI 生成商品照／整套辨識已啟用' : '未設定，將改用本機去背（非 AI 商品照）'}
+              </span>
+            </span>
+            <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs ${keyConfigured ? 'bg-bg-muted text-ink' : 'bg-seal/10 text-seal'}`}>
+              {keyConfigured ? '已設定' : '設定'}
+            </span>
+          </button>
         </div>
       )}
 
@@ -595,6 +614,17 @@ export default function AddItem() {
           onClose={() => {
             resetOutfitFlow();
             nav('/closet', { replace: true });
+          }}
+        />
+      )}
+
+      {showKeyModal && (
+        <ApiKeyModal
+          onClose={() => setShowKeyModal(false)}
+          onSaved={(configured, message) => {
+            setKeyConfigured(configured);
+            setShowKeyModal(false);
+            showUnavailable(message);
           }}
         />
       )}
@@ -1399,6 +1429,82 @@ function Select({
     >
       {children}
     </select>
+  );
+}
+
+function ApiKeyModal({
+  onClose,
+  onSaved,
+}: {
+  onClose: () => void;
+  onSaved: (configured: boolean, message: string) => void;
+}) {
+  const [value, setValue] = useState(getUserOpenAIKey());
+  const [reveal, setReveal] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const submit = async () => {
+    setSaving(true);
+    try {
+      await saveOpenAIKey(value);
+    } finally {
+      setSaving(false);
+    }
+    const configured = !!value.trim();
+    onSaved(configured, configured ? '已儲存 OpenAI API Key' : '已清除 OpenAI API Key');
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 text-ink">
+      <button className="absolute inset-0 bg-black/40" onClick={onClose} aria-label="關閉" />
+      <div className="absolute inset-x-0 bottom-0 mx-auto max-w-md rounded-t-panel bg-card px-5 pb-7 pt-5" style={{ paddingBottom: 'calc(var(--safe-bottom) + 24px)' }}>
+        <div className="mb-1 flex items-center">
+          <h3 className="flex-1 font-serif text-lg">OpenAI API Key</h3>
+          <button onClick={onClose} className="grid h-8 w-8 place-items-center rounded-full border border-line text-muted">×</button>
+        </div>
+        <p className="mb-4 text-xs leading-5 text-muted">
+          填入你的 OpenAI API Key，啟用「AI 生成商品照」與「整套穿搭辨識」。
+          金鑰只存在這台裝置（IndexedDB），不會上傳，也可隨時清除。
+        </p>
+
+        <div className="relative">
+          <input
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            type={reveal ? 'text' : 'password'}
+            autoFocus
+            spellCheck={false}
+            autoComplete="off"
+            placeholder="sk-..."
+            className="w-full rounded-xl border border-line bg-surface px-4 py-3 pr-16 outline-none focus:border-ink"
+          />
+          <button
+            type="button"
+            onClick={() => setReveal((v) => !v)}
+            className="absolute inset-y-0 right-3 my-auto text-xs text-muted underline underline-offset-2"
+          >
+            {reveal ? '隱藏' : '顯示'}
+          </button>
+        </div>
+
+        <button
+          onClick={submit}
+          disabled={saving}
+          className="mt-4 w-full rounded-xl bg-seal py-3.5 font-medium text-white disabled:opacity-40"
+        >
+          {saving ? '儲存中…' : value.trim() ? '儲存金鑰' : '清除金鑰'}
+        </button>
+
+        <a
+          href="https://platform.openai.com/api-keys"
+          target="_blank"
+          rel="noreferrer"
+          className="mt-3 block text-center text-xs text-muted underline underline-offset-4"
+        >
+          前往 OpenAI 取得 API Key
+        </a>
+      </div>
+    </div>
   );
 }
 

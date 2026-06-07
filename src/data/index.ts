@@ -14,3 +14,4 @@ export * from './wearlogs';
 export * from './images';
 export * from './backup';
 export * from './seed';
+export * from './settings';

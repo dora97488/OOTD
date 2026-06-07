@@ -3,6 +3,7 @@
 // ⚠️ Hackathon 直連模式：API key 走 import.meta.env.VITE_OPENAI_API_KEY。
 //    VITE_ 變數會被打進前端 bundle，僅限本機 demo；上線請改後端 / serverless proxy。
 import type { Category, Season, WuXing } from '../db/db';
+import { getOpenAIKey, hasOpenAIKey } from './openaiKey';
 
 const ENDPOINT = 'https://api.openai.com/v1/responses';
 const DEFAULT_MODEL = 'gpt-4.1-mini';
@@ -29,13 +30,13 @@ interface OutfitDetectionResponse {
 }
 
 export function isOutfitDetectionAvailable(): boolean {
-  return !!import.meta.env.VITE_OPENAI_API_KEY;
+  return hasOpenAIKey();
 }
 
 export async function detectOutfitItems(input: Blob): Promise<OutfitDetectionItem[]> {
-  const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+  const apiKey = getOpenAIKey();
   if (!apiKey) {
-    throw new Error('未設定 VITE_OPENAI_API_KEY，無法辨識整套穿搭');
+    throw new Error('未設定 OpenAI API key，無法辨識整套穿搭');
   }
 
   const imageUrl = await blobToDataUrl(input);

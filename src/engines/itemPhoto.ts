@@ -7,6 +7,7 @@
 // 取捨：這是「生成」而非「裁切」，會盡量保留顏色/花色/logo，但被身體遮住的部分由 AI 補繪，
 //      不保證與真衣服 100% 一致。詳見討論記錄。
 import type { Category } from '../db/db';
+import { getOpenAIKey, hasOpenAIKey } from './openaiKey';
 
 const ENDPOINT = 'https://api.openai.com/v1/images/edits';
 // 預設用 gpt-image-1；可用 VITE_OPENAI_IMAGE_MODEL 覆寫成 gpt-image-2（2026-04 發布，保色/構圖更穩）。
@@ -23,7 +24,7 @@ const CATEGORY_EN: Record<Category, string> = {
 };
 
 export function isItemPhotoAvailable(): boolean {
-  return !!import.meta.env.VITE_OPENAI_API_KEY;
+  return hasOpenAIKey();
 }
 
 function buildPrompt(category?: Category, colorName?: string, targetDescription?: string): string {
@@ -58,9 +59,9 @@ export async function productizeItemPhoto(
   colorName?: string,
   targetDescription?: string
 ): Promise<Blob> {
-  const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+  const apiKey = getOpenAIKey();
   if (!apiKey) {
-    throw new Error('未設定 VITE_OPENAI_API_KEY，無法生成商品照');
+    throw new Error('未設定 OpenAI API key，無法生成商品照');
   }
 
   const ext = input.type.includes('webp') ? 'webp' : input.type.includes('jpeg') ? 'jpg' : 'png';

@@ -71,6 +71,10 @@ export interface Profile {
 
 export interface ImageBlob { id: string; blob: Blob; }
 
+// 簡易 key-value 設定表（如使用者自填的 OpenAI API key）。
+// 走 IndexedDB 而非 localStorage（規範禁用 localStorage）；單一固定 id 取值。
+export interface Setting { id: string; value: string; }
+
 // 轉售草稿（Phase 0 僅本機；之後接後端時沿用此結構）。
 export interface Listing {
   id: string;
@@ -99,6 +103,7 @@ export class OOTDDB extends Dexie {
   images!: Table<ImageBlob, string>;
   listings!: Table<Listing, string>;
   wearlogs!: Table<WearLog, string>;
+  settings!: Table<Setting, string>;
 
   constructor() {
     super('ootd');
@@ -113,6 +118,10 @@ export class OOTDDB extends Dexie {
     // 註：Item 新增 name、Category 新增「洋裝」屬「非索引欄位/型別」變更，不需動 schema。
     this.version(2).stores({
       wearlogs: 'id, date, createdAt',
+    });
+    // v3：新增 key-value 設定表（存使用者自填的 OpenAI API key 等）。其餘表未變動。
+    this.version(3).stores({
+      settings: 'id',
     });
   }
 }
