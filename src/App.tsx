@@ -47,10 +47,12 @@ function Shell() {
 
   const showNav = !FULLSCREEN.includes(loc.pathname);
 
+  // overflowX 用 'clip' 不可用 'hidden'：'hidden' 會把 overflow-y 連帶升成 'auto'，
+  // 讓殼變成捲動容器 → iOS 上頁面卡住滑不動；'clip' 只夾水平、保留垂直由文件捲動。
   return (
     <div
       className="mx-auto max-w-md"
-      style={{ position: 'relative', overflowX: 'hidden', minHeight: '100dvh', background: SHELL_BG, paddingTop: 'var(--safe-top)' }}
+      style={{ position: 'relative', overflowX: 'clip', minHeight: '100dvh', background: SHELL_BG, paddingTop: 'var(--safe-top)' }}
     >
       <div style={showNav ? { paddingBottom: 'calc(108px + var(--safe-bottom))' } : undefined}>
         <Routes>
