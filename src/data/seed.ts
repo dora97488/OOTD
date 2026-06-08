@@ -102,6 +102,16 @@ async function toCutout(blob: Blob): Promise<Blob> {
 // 都共用同一個 promise，避免並發造成重複寫入。
 let inflight: Promise<number> | null = null;
 
+// DEBUG：把 seed 過程的結果/錯誤攤出來，方便手機端直接看（之後可移除）。
+export interface SeedReport {
+  added: number;
+  existing: number;
+  fetchFail: number;
+  errors: string[];   // 前幾筆失敗原因
+  done: boolean;
+}
+export let seedReport: SeedReport = { added: 0, existing: 0, fetchFail: 0, errors: [], done: false };
+
 /**
  * 補齊示範 30 件（含圖片）：以穩定 `seedId` 逐件 top-up，缺哪件補哪件、可重複執行不重複。
  * 只新增「目前不存在」的示範單品，不覆蓋／不動使用者自己加的或已修改的單品。回傳新增件數。
@@ -113,6 +123,8 @@ export function seedClosetIfEmpty(): Promise<number> {
 
 async function doSeed(): Promise<number> {
   let added = 0;
+  const report: SeedReport = { added: 0, existing: 0, fetchFail: 0, errors: [], done: false };
+  seedReport = report;
 
   for (let i = 0; i < SEED.length; i++) {
     const s = SEED[i];
@@ -120,6 +132,7 @@ async function doSeed(): Promise<number> {
     try {
       const existing = await getItem(id);
       if (existing) {
+        report.existing++;
         // 正規化上傳順序：把示範單品的 createdAt 對齊固定升冪基準（冪等），
         // 確保衣櫥「demo 在前、依陣列順序、且早於使用者上傳」。
         const wantCreatedAt = seedCreatedAt(i);
@@ -136,8 +149,13 @@ async function doSeed(): Promise<number> {
         }
         continue;                                 // 不覆蓋使用者保留／已修改的單品
       }
-      const res = await fetch(`${import.meta.env.BASE_URL}seed/${s.file}`);
-      if (!res.ok) continue;
+      const url = `${import.meta.env.BASE_URL}seed/${s.file}`;
+      const res = await fetch(url);
+      if (!res.ok) {
+        report.fetchFail++;
+        if (report.errors.length < 5) report.errors.push(`fetch ${res.status} @ ${url}`);
+        continue;
+      }
       // 原始照片（jpg）→ 入庫前去背成透明圖；原型 png 已去背直接存。
       const raw = await res.blob();
       const imageId = await storeImage(isRawPhoto(s.file) ? await toCutout(raw) : raw);
@@ -158,9 +176,13 @@ async function doSeed(): Promise<number> {
       };
       await addItem(item);
       added++;
-    } catch {
+      report.added = added;
+    } catch (e) {
       // 單件失敗就跳過，不擋整批
+      if (report.errors.length < 5) report.errors.push(`${s.file}: ${(e as Error)?.message ?? String(e)}`);
     }
   }
+  report.added = added;
+  report.done = true;
   return added;
 }

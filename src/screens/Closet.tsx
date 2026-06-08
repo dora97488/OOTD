@@ -68,7 +68,10 @@ function Sticker({ src, alt, pad = 22, stroke = 6 }: { src?: string; alt: string
     img.crossOrigin = 'anonymous';
     img.onload = () => {
       if (cancelled) return;
-      const maxDim = 360;
+      // 邊界框只是用來「裁掉透明邊、置中」——探測解析度低一點就夠，誤差幾 px 肉眼無感。
+      // 最終 drawImage 仍用原圖全解析度（sx/sy/sw/sh 已換算回原座標），不影響清晰度。
+      // 用 128 而非 360：逐像素掃描＋getImageData 讀回量約降到 1/8，grid 多卡時主執行緒不再卡。
+      const maxDim = 128;
       const k = Math.min(1, maxDim / Math.max(img.width, img.height));
       const iw = Math.max(1, Math.round(img.width * k));
       const ih = Math.max(1, Math.round(img.height * k));
@@ -257,7 +260,9 @@ export default function Closet() {
   const [anaIn, setAnaIn] = useState(false);
 
   // 進衣櫥時補齊原型 30 件示範資料（top-up：缺哪件補哪件，不覆蓋使用者資料）
-  useEffect(() => { seedClosetIfEmpty(); }, []);
+  useEffect(() => {
+    seedClosetIfEmpty().catch((e) => console.warn('[closet] seed 失敗：', e));
+  }, []);
 
   // 依上傳順序（createdAt 升冪）顯示：先上傳的在前、新上傳的接在後面。
   // listItems() 預設新→舊，這裡明確改回上傳順序，不動其他畫面。
