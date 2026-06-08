@@ -131,7 +131,7 @@ export default function Onboarding() {
       <p className="mt-1 text-xs text-muted">填了「時辰＋出生地」就會順便算出你的星盤（太陽／月亮／上升）。</p>
 
       {!result ? (
-        <div className="fixed inset-x-0 bottom-0 z-10 border-t border-line bg-paper px-6 pt-3 pb-[calc(env(safe-area-inset-bottom)+1rem)]">
+        <div className="fixed bottom-0 left-1/2 z-10 w-full max-w-md -translate-x-1/2 border-t border-line bg-paper px-6 pt-3 pb-[calc(env(safe-area-inset-bottom)+1rem)]">
           <button
             onClick={calc}
             disabled={!birthDate}
@@ -157,12 +157,14 @@ export default function Onboarding() {
               </p>
             )}
           </div>
-          <button onClick={finish} className="mt-6 w-full rounded-xl bg-seal py-3.5 font-medium text-white">
-            開始使用
-          </button>
-          <button onClick={() => setResult(null)} className="mt-2 w-full py-2 text-sm text-muted">
-            重新輸入
-          </button>
+          <div className="fixed bottom-0 left-1/2 z-10 w-full max-w-md -translate-x-1/2 border-t border-line bg-paper px-6 pt-3 pb-[calc(env(safe-area-inset-bottom)+1rem)]">
+            <button onClick={finish} className="w-full rounded-xl bg-seal py-3.5 font-medium text-white">
+              開始使用
+            </button>
+            <button onClick={() => setResult(null)} className="mt-2 w-full py-2 text-sm text-muted">
+              重新輸入
+            </button>
+          </div>
         </div>
       )}
     </div>
