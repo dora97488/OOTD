@@ -169,7 +169,7 @@ const CSS = `
 }
 
 .oi-oracle{
-  position:absolute; top:18%; left:14%; width:80%; max-width:300px;
+  position:absolute; top:14%; left:14%; width:80%; max-width:300px;
   opacity:0; animation: oi-title-in .8s ease ${OPEN_AT}ms both;
   user-select:none; -webkit-user-drag:none;
 }

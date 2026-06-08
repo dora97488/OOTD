@@ -77,7 +77,7 @@ export default function Onboarding() {
   }
 
   return (
-    <div className="px-6 py-10">
+    <div className="px-6 py-10 pb-28">
       <p className="font-serif text-4xl tracking-widest text-seal">OOTD</p>
       <p className="mt-2 text-sm text-muted">Never stress over what to wear.</p>
 
@@ -131,13 +131,15 @@ export default function Onboarding() {
       <p className="mt-1 text-xs text-muted">填了「時辰＋出生地」就會順便算出你的星盤（太陽／月亮／上升）。</p>
 
       {!result ? (
-        <button
-          onClick={calc}
-          disabled={!birthDate}
-          className="mt-8 w-full rounded-xl bg-seal py-3.5 font-medium text-white disabled:opacity-40"
-        >
-          揭曉我的五行
-        </button>
+        <div className="fixed inset-x-0 bottom-0 z-10 border-t border-line bg-paper px-6 pt-3 pb-[calc(env(safe-area-inset-bottom)+1rem)]">
+          <button
+            onClick={calc}
+            disabled={!birthDate}
+            className="w-full rounded-xl bg-seal py-3.5 font-medium text-white disabled:opacity-40"
+          >
+            揭曉我的五行
+          </button>
+        </div>
       ) : (
         <div className="mt-8">
           <div className="rounded-2xl border border-line bg-card p-5 shadow-card">
