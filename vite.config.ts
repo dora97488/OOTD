@@ -6,6 +6,11 @@ import { VitePWA } from 'vite-plugin-pwa';
 // base: './' 讓打包後可放在 GitHub Pages 子路徑；搭配 HashRouter 避免靜態主機的路由 404。
 export default defineConfig({
   base: './',
+  // 手機透過 cloudflare tunnel 測 PWA 時，preview 預設會擋未知 host；
+  // 放行 trycloudflare.com（每次 tunnel 網址都不同）。
+  preview: {
+    allowedHosts: ['.trycloudflare.com'],
+  },
   resolve: {
     alias: {
       // circular-natal-horoscope-js 的 package.json main/module 欄位有誤（指到不存在的入口），
